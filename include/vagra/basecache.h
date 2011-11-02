@@ -42,7 +42,6 @@
 #include <cxxtools/membar.h>
 
 #include <vagra/types.h>
-#include <vagra/baseobject.h>
 #include <vagra/nexus.h>
 
 namespace vagra
