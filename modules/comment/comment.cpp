@@ -47,7 +47,9 @@ log_define("vagra")
 
 //begin Comment
 
-Comment::Comment(const unsigned int comm_id)
+Comment::Comment(const unsigned int comm_id) :
+	ref_id(0),
+	art_id(0)
 {
 	id = comm_id;
 	try

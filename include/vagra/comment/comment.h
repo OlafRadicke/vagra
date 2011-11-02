@@ -45,7 +45,9 @@ class Comment: public BaseObject
 	std::string mail;
 
     public:
-	Comment() {}
+	Comment() :
+		ref_id(0),
+		art_id(0) {}
 	explicit Comment(const unsigned int);
 	operator bool() const;
 	Comment* operator->() { return this; }

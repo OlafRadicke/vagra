@@ -45,7 +45,8 @@ class BaseObject
 	virtual void clear() = NULL;
 
     protected:
-	BaseObject() {}
+	BaseObject() :
+       		id(0) {}
 	unsigned int id;
 	std::string title;
 	std::string head;
