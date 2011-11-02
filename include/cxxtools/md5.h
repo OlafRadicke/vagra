@@ -26,9 +26,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef V_CXXTOOLS_MD5_H // can and need to coexist with cxxtools-2.0 md5.5
-#define V_CXXTOOLS_MD5_H
+#ifndef CXXTOOLS_MD5_H
+#define CXXTOOLS_MD5_H
 
+#include <cxxtools/legacy_md5.h>
 #include <cxxtools/md5stream.h>
 #include <iterator>
 #include <algorithm>
