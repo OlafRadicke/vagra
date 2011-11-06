@@ -35,9 +35,9 @@
 #include <tntdb/row.h>
 
 #include <vagra/nexus.h>
+#include <vagra/cache.h>
 
 #include <vagra/comment/comment.h>
-#include <vagra/comment/cachedcomment.h>
 #include <vagra/article/cachedarticle.h>
 
 namespace vagra
