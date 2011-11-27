@@ -52,6 +52,7 @@ class User: public BaseObject
 	User* operator->() { return this; }
 	void clear();
 
+	unsigned int getId() const;
 	const std::string& getLogname() const;
 	const std::string& getDispname() const;
 	const std::string& getSurname() const;

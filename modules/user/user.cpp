@@ -56,7 +56,7 @@ User::User(const unsigned int u_id)
 		dbconn conn = nx.dbConnection();
 		tntdb::Statement q_user = conn.prepare(
 			"SELECT logname, dispname, surname, name, mail,"
-				" ctime, mtime FROM user WHERE u_id = :Qid");
+				" ctime, mtime FROM vuser WHERE id = :Qid");
 		q_user.setUnsigned("Qid", id);
 		tntdb::Row row_user = q_user.selectRow();
 		if(!row_user[0].isNull())
@@ -93,6 +93,11 @@ void User::clear()
 	surname.clear();
 	name.clear();
 	mail.clear();
+}
+
+unsigned int User::getId() const
+{
+	return id;
 }
 
 const std::string& User::getLogname() const
@@ -165,7 +170,7 @@ void User::dbInsert()
 	tntdb::Transaction trans_user(conn);
 	try
 	{
-		conn.prepare("INSERT INTO user (logname, dispname, surname,"
+		conn.prepare("INSERT INTO vuser (logname, dispname, surname,"
 			" name, mail) VALUES (:Ilogname, :Idispname, :Isurname,"
 			" :Iname, :Imail)")
 		.setString("Ilogname", logname)
@@ -215,7 +220,7 @@ void User::dbUpdate()
 	tntdb::Transaction trans_user(conn);
 	try
 	{
-		conn.prepare("UPDATE user SET logname = :Ilogname, dispname = :Idispname,"
+		conn.prepare("UPDATE vuser SET logname = :Ilogname, dispname = :Idispname,"
 				" surname = :Isurname, name = :Iname, mail = :Imail,"
 			        " mtime = now() WHERE id = :Iu_id")
 		.setString("Ilogname", logname)
@@ -270,7 +275,7 @@ unsigned int getUidByLogname(const std::string& logname, dbconn& conn)
         try
         {
                 tntdb::Statement q_u_id = conn.prepare(
-                        "SELECT id FROM user WHERE logname = :Qlogname");
+                        "SELECT id FROM vuser WHERE logname = :Qlogname");
                 q_u_id.setString("Qlogname", logname);
                 tntdb::Row row_u_id = q_u_id.selectRow();
                 if(!row_u_id[0].isNull())
