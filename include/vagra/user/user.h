@@ -49,6 +49,8 @@ class User: public BaseObject
 	User() {}
 	explicit User(const unsigned int);
 	operator bool() const;
+	operator int() const;
+	operator unsigned int() const;
 	User* operator->() { return this; }
 	void clear();
 
@@ -71,6 +73,9 @@ class User: public BaseObject
 
 unsigned int getUidByLogname(const std::string&);
 unsigned int getUidByLogname(const std::string&, dbconn&);
+
+unsigned int getUidByDispname(const std::string&);
+unsigned int getUidByDispname(const std::string&, dbconn&);
 
 } //namespace vagra
 

@@ -43,6 +43,8 @@ class CachedUser
     public:
 	explicit CachedUser(const unsigned int);
 	operator bool() const;
+	operator int() const;
+	operator unsigned int() const;
 
 	const Cache<User>::SharedObject& operator->() const { return user; }
 	User operator*() const { return *user; }

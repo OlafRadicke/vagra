@@ -42,4 +42,14 @@ CachedUser::operator bool() const
 	return *user;
 }
 
+CachedUser::operator int() const
+{
+	return *user;
+}
+
+CachedUser::operator unsigned int() const
+{
+	return *user;
+}
+
 } //namespace vagra

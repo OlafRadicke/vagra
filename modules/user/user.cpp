@@ -85,6 +85,16 @@ User::operator bool() const
 	return(id && !logname.empty());
 }
 
+User::operator int() const
+{
+	return(id);
+}
+
+User::operator unsigned int() const
+{
+	return(id);
+}
+
 void User::clear()
 {
 	clearBase();
@@ -167,6 +177,14 @@ void User::dbInsert()
 	if(getUidByLogname(logname,conn))
 		throw std::domain_error(gettext("logname belongs to differen user"));
 
+	if(getUidByDispname(dispname,conn))
+		throw std::domain_error(gettext("dispname belongs to differen user"));
+
+	if(getUidByLogname(dispname,conn)) // do not allow to set other users logname as dispname
+		throw std::domain_error(gettext("dispname belongs to differen user"));
+
+	if(dispname.empty())
+		dispname = logname;
 	tntdb::Transaction trans_user(conn);
 	try
 	{
@@ -213,41 +231,52 @@ void User::dbUpdate()
 	Nexus& nx = Nexus::getInstance();
 	dbconn conn = nx.dbConnection();
 
-	unsigned int _id = getUidByLogname(logname,conn);
-	if(_id && _id != id)
-		throw std::domain_error(gettext("logname belongs to differen user"));
+unsigned int _id = getUidByLogname(logname,conn);
+if(_id && _id != id)
+	throw std::domain_error(gettext("logname belongs to differen user"));
 
-	tntdb::Transaction trans_user(conn);
-	try
-	{
-		conn.prepare("UPDATE vuser SET logname = :Ilogname, dispname = :Idispname,"
-				" surname = :Isurname, name = :Iname, mail = :Imail,"
-			        " mtime = now() WHERE id = :Iu_id")
-		.setString("Ilogname", logname)
-		.setString("Idispname", dispname)
-		.setString("Isurname", surname)
-		.setString("Iname", name)
-		.setString("Imail", mail)
-		.setUnsigned("Iu_id", id)
-		.execute();
-	}
-	catch(const std::exception& er_db)
-	{
-		log_error(er_db.what());
-		throw std::domain_error(gettext("could not update user"));
-	}
+if(dispname.empty())
+	dispname = logname;
 
-	try
-	{
-		Cache<User>& user_cache = Cache<User>::getInstance();
-		trans_user.commit();
-		user_cache.clear(id);
-	}
-	catch(const std::exception& er_trans)
-	{
-		log_error(er_trans.what());
-		throw std::domain_error(gettext("commit failed"));
-	}
+_id = getUidByDispname(dispname,conn);
+if(_id && _id != id)
+	throw std::domain_error(gettext("dispname belongs to differen user"));
+
+_id = getUidByLogname(dispname,conn); // do not allow to set other users logname as dispname
+if(_id && _id != id)
+	throw std::domain_error(gettext("dispname belongs to differen user"));
+
+tntdb::Transaction trans_user(conn);
+try
+{
+	conn.prepare("UPDATE vuser SET logname = :Ilogname, dispname = :Idispname,"
+			" surname = :Isurname, name = :Iname, mail = :Imail,"
+			" mtime = now() WHERE id = :Iu_id")
+	.setString("Ilogname", logname)
+	.setString("Idispname", dispname)
+	.setString("Isurname", surname)
+	.setString("Iname", name)
+	.setString("Imail", mail)
+	.setUnsigned("Iu_id", id)
+	.execute();
+}
+catch(const std::exception& er_db)
+{
+	log_error(er_db.what());
+	throw std::domain_error(gettext("could not update user"));
+}
+
+try
+{
+	Cache<User>& user_cache = Cache<User>::getInstance();
+	trans_user.commit();
+	user_cache.clear(id);
+}
+catch(const std::exception& er_trans)
+{
+	log_error(er_trans.what());
+	throw std::domain_error(gettext("commit failed"));
+}
 }
 
 // end User
@@ -267,9 +296,25 @@ unsigned int getUidByLogname(const std::string& logname)
         return 0;
 }
 
+unsigned int getUidByDispname(const std::string& dispname)
+{
+        try
+        {
+                Nexus& nx = Nexus::getInstance();
+                dbconn conn = nx.dbConnection();
+                return getUidByDispname(dispname, conn);
+        }
+        catch(const std::exception& er_comm)
+        {
+                log_error(er_comm.what());
+        }
+        return 0;
+}
+
 /* need this versions , because we may
  * read id during transaction.
  */
+
 unsigned int getUidByLogname(const std::string& logname, dbconn& conn)
 {
         try
@@ -277,6 +322,24 @@ unsigned int getUidByLogname(const std::string& logname, dbconn& conn)
                 tntdb::Statement q_u_id = conn.prepare(
                         "SELECT id FROM vuser WHERE logname = :Qlogname");
                 q_u_id.setString("Qlogname", logname);
+                tntdb::Row row_u_id = q_u_id.selectRow();
+                if(!row_u_id[0].isNull())
+                	return row_u_id[0].getUnsigned();
+        }
+        catch(const std::exception& er_uid)
+        {
+                log_warn(er_uid.what());
+        }
+        return 0;
+}
+
+unsigned int getUidByDispname(const std::string& dispname, dbconn& conn)
+{
+        try
+        {
+                tntdb::Statement q_u_id = conn.prepare(
+                        "SELECT id FROM vuser WHERE dispname = :Qdispname");
+                q_u_id.setString("Qdispname", dispname);
                 tntdb::Row row_u_id = q_u_id.selectRow();
                 if(!row_u_id[0].isNull())
                 	return row_u_id[0].getUnsigned();
