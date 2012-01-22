@@ -49,13 +49,14 @@ log_define("vagra")
 //begin Article
 
 Article::Article(const std::string& art_title)
+	: BaseObject("articles")
 {
 	*this = Article(cachedGetArticleIdByTitle(art_title));
 }
 
-Article::Article(const unsigned int art_id)
+Article::Article(const unsigned int _id)
+	: BaseObject("articles", _id) //call baseconstructor(db_tablename,id)
 {
-	id = art_id;
 	try
 	{
 		Nexus& nx = Nexus::getInstance();
@@ -63,9 +64,9 @@ Article::Article(const unsigned int art_id)
   		try
 		{
 			tntdb::Statement q_art_cont = conn.prepare(
-				"SELECT title, headline, abstract, content, author, ctime, mtime"
-					" FROM articles WHERE art_id = :Qid");
-			q_art_cont.setUnsigned("Qid", art_id);
+				"SELECT title, headline, abstract, content, author"
+					" FROM articles WHERE id = :Qid");
+			q_art_cont.setUnsigned("Qid", id);
 			tntdb::Row row_art_cont = q_art_cont.selectRow();
 			if(!row_art_cont[0].isNull())
 				title = row_art_cont[0].getString();
@@ -77,10 +78,6 @@ Article::Article(const unsigned int art_id)
 				text = row_art_cont[3].getString();
 			if(!row_art_cont[4].isNull())
 				author = row_art_cont[4].getString();
-			if(!row_art_cont[5].isNull())
-				ctime = row_art_cont[5].getDatetime();
-			if(!row_art_cont[6].isNull())
-				mtime = row_art_cont[6].getDatetime();
 			url = space2underscore(title);
 		}
 		catch(const std::exception& er_art)
@@ -91,7 +88,7 @@ Article::Article(const unsigned int art_id)
 		{
 			tntdb::Statement q_art_tags = conn.prepare(
 				"SELECT tag FROM tags WHERE art_id = :Qid");
-			q_art_tags.setUnsigned("Qid", art_id);
+			q_art_tags.setUnsigned("Qid", id);
 			tntdb::Result res_art_tags = q_art_tags.select();
       			for(tntdb::Result::const_iterator it = res_art_tags.begin();
 				it != res_art_tags.end(); ++it)
@@ -109,8 +106,8 @@ Article::Article(const unsigned int art_id)
 		try
 		{
 			tntdb::Statement q_art_comm_ids = conn.prepare(
-				"SELECT comm_id FROM comments WHERE art_id = :Qid ORDER BY comm_id ASC");
-			q_art_comm_ids.setUnsigned("Qid", art_id);
+				"SELECT id FROM comments WHERE art_id = :Qid ORDER BY id ASC");
+			q_art_comm_ids.setUnsigned("Qid", id);
 			tntdb::Result res_art_comm_ids = q_art_comm_ids.select();
       			for(tntdb::Result::const_iterator it = res_art_comm_ids.begin();
 				it != res_art_comm_ids.end(); ++it)
@@ -132,9 +129,21 @@ Article::Article(const unsigned int art_id)
   	}
 }
 
+Article::operator bool() const
+{
+	return(!title.empty() && !head.empty() && (!text.empty() || !abstract.empty()));
+}
+
 void Article::clear()
 {
 	clearBase();
+
+	title.clear();
+	head.clear();
+	abstract.clear();
+	text.clear();
+	author.clear();
+
 	url.clear();
 	tags.clear();
 	comment_ids.clear();
@@ -143,6 +152,31 @@ void Article::clear()
 const std::string& Article::getUrl() const
 {
 	return url;
+}
+
+const std::string& Article::getTitle() const
+{
+	        return title;
+}
+
+const std::string& Article::getHead() const
+{
+	        return head;
+}
+
+const std::string& Article::getAbstract() const
+{
+	        return abstract;
+}
+
+const std::string& Article::getText() const
+{
+	        return text;
+}
+
+const std::string& Article::getAuthor() const
+{
+	        return author;
 }
 
 const std::vector<std::string>& Article::getTags() const
@@ -176,6 +210,31 @@ const szt_vecint Article::getCommentAmount() const
 	return comment_ids.size();
 }
 
+void Article::setTitle(const std::string& s)
+{
+	title = s;
+}
+
+void Article::setHead(const std::string& s)
+{
+	head = s;
+}
+
+void Article::setAbstract(const std::string& s)
+{
+	abstract = s;
+}
+
+void Article::setText(const std::string& s)
+{
+	text = s;
+}
+
+void Article::setAuthor(const std::string& s)
+{
+	author = s;
+}
+
 void Article::setTags(const std::string& s)
 {
 	tags.clear();
@@ -200,7 +259,7 @@ void Article::setTags(const std::string& s)
 
 }
 
-void Article::dbInsert()
+void Article::dbCommit()
 {
 	title = underscore2space(title);
 
@@ -214,82 +273,17 @@ void Article::dbInsert()
 	Nexus& nx = Nexus::getInstance();
 	dbconn conn = nx.dbConnection();
 
-	if(getArticleIdByTitle(title, conn))
+	if(id != 0 && id != getArticleIdByTitle(title, conn))
 		throw std::domain_error(gettext("article already exist"));
 
 	tntdb::Transaction trans_art(conn);
 	try
 	{
-		conn.prepare("INSERT INTO articles (title, headline, abstract, content, author)"
-			       " VALUES (:Ititle, :Ihead, :Iabstract, :Itext, :Iauthor)")
+		dbCommitBase(conn); //init base, INSERT if id==0, otherwise UPDATE
+
+		conn.prepare("UPDATE articles SET title = :Ititle, headline = :Ihead, abstract = :Iabstract,"
+			     " content = :Itext, author = :Iauthor  WHERE id = :Iid")
 		.setString("Ititle", title)
-		.setString("Ihead", head)
-		.setString("Iabstract", abstract)
-		.setString("Itext", text)
-		.setString("Iauthor", author)
-		.execute();
-	}
-	catch(const std::exception& er_db)
-	{
-		log_error(er_db.what());
-		throw std::domain_error(gettext("could not insert article"));
-	}
-
-	unsigned int art_id = getArticleIdByTitle(title, conn);
-	if(!art_id)
-		throw std::domain_error(gettext("article id not found"));
-	id = art_id;
-	try
-	{
-		for(std::vector<std::string>::iterator it = tags.begin();
-				it != tags.end(); it++)
-		{
-			conn.prepare("INSERT INTO tags (tag, art_id)"
-					" VALUES (:Itag, :Iid)")
-			.setString("Itag", *it)
-			.setUnsigned("Iid", art_id)
-			.execute();
-		}
-	}
-	catch(const std::exception& er_db)
-	{
-		log_error(er_db.what());
-		throw std::domain_error(gettext("could not commit tags"));
-	}
-	try
-	{
-		ArticleCache& art_cache = ArticleCache::getInstance();
-		trans_art.commit();
-		art_cache.updateTagsum();
-		art_cache.invAdd(art_id);
-		art_cache.updateMTime();
-	}
-	catch(const std::exception& er_trans)
-	{
-		log_error(er_trans.what());
-		throw std::domain_error(gettext("commit failed"));
-	}
-}
-
-void Article::dbUpdate()
-{
-	title = underscore2space(title);
-
-	if(title.empty())
-		throw std::domain_error(gettext("title empty"));
-	if(head.empty())
-		throw std::domain_error(gettext("headline empty"));
-	if(text.empty() && abstract.empty())
-		throw std::domain_error(gettext("need abstract or text"));
-
-	Nexus& nx = Nexus::getInstance();
-	dbconn conn = nx.dbConnection();
-
-	tntdb::Transaction trans_art(conn);
-	try
-	{
-		conn.prepare("UPDATE articles SET headline = :Ihead, abstract = :Iabstract, "
-			     "content = :Itext, author = :Iauthor, mtime = now() WHERE art_id = :Iid")
 		.setString("Ihead", head)
 		.setString("Iabstract", abstract)
 		.setString("Itext", text)
@@ -330,6 +324,7 @@ void Article::dbUpdate()
 		trans_art.commit();
 		art_cache.clear(id);
 		art_cache.updateTagsum();
+		art_cache.invAdd(id);
 		art_cache.updateMTime();
 	}
 	catch(const std::exception& er_trans)
@@ -365,7 +360,7 @@ unsigned int getArticleIdByTitle(const std::string& title, dbconn& conn)
         try
         {
                 tntdb::Statement q_art_id = conn.prepare(
-                        "SELECT art_id FROM articles WHERE title = :Qtitle");
+                        "SELECT id FROM articles WHERE title = :Qtitle");
                 q_art_id.setString("Qtitle", art_title);
                 tntdb::Row row_art_id = q_art_id.selectRow();
                 if(row_art_id[0].isNull())

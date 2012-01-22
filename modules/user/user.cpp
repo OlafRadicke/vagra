@@ -47,9 +47,9 @@ log_define("vagra")
 
 //begin User
 
-User::User(const unsigned int u_id)
+User::User(const unsigned int _id)
+	: BaseObject("vuser", _id) //call baseconstructor(db_tablename,id)
 {
-	id = u_id;
 	try
 	{
 		Nexus& nx = Nexus::getInstance();
@@ -98,6 +98,7 @@ User::operator unsigned int() const
 void User::clear()
 {
 	clearBase();
+
 	logname.clear();
 	dispname.clear();
 	surname.clear();
@@ -160,65 +161,8 @@ void User::setMail(const std::string& s)
 	mail = s;
 }
 
-void User::dbInsert()
+void User::dbCommit()
 {
-	if(logname.empty())
-		throw std::domain_error(gettext("need a login name"));
-	if(logname.length() > 16)
-		throw std::domain_error(gettext("logname to long"));
-
-	cxxtools::Regex checkLogname("^[aA-zZ]*$");
-	if(!checkLogname.match(logname))
-		throw std::domain_error(gettext("invalid logname"));
-
-	Nexus& nx = Nexus::getInstance();
-	dbconn conn = nx.dbConnection();
-
-	if(getUidByLogname(logname,conn))
-		throw std::domain_error(gettext("logname belongs to differen user"));
-
-	if(getUidByDispname(dispname,conn))
-		throw std::domain_error(gettext("dispname belongs to differen user"));
-
-	if(getUidByLogname(dispname,conn)) // do not allow to set other users logname as dispname
-		throw std::domain_error(gettext("dispname belongs to differen user"));
-
-	if(dispname.empty())
-		dispname = logname;
-	tntdb::Transaction trans_user(conn);
-	try
-	{
-		conn.prepare("INSERT INTO vuser (logname, dispname, surname,"
-			" name, mail) VALUES (:Ilogname, :Idispname, :Isurname,"
-			" :Iname, :Imail)")
-		.setString("Ilogname", logname)
-		.setString("Idispname", dispname)
-		.setString("Isurname", surname)
-		.setString("Iname", name)
-		.setString("Imail", mail)
-		.execute();
-	}
-	catch(const std::exception& er_db)
-	{
-		log_error(er_db.what());
-		throw std::domain_error(gettext("could not insert user"));
-	}
-
-	try
-	{
-		trans_user.commit();
-	}
-	catch(const std::exception& er_trans)
-	{
-		log_error(er_trans.what());
-		throw std::domain_error(gettext("commit failed"));
-	}
-}
-
-void User::dbUpdate()
-{
-	if(!id)
-		throw std::domain_error(gettext("need valid user id"));
 	if(logname.empty())
 		throw std::domain_error(gettext("need a login name name"));
 	if(logname.length() > 16)
@@ -231,52 +175,54 @@ void User::dbUpdate()
 	Nexus& nx = Nexus::getInstance();
 	dbconn conn = nx.dbConnection();
 
-unsigned int _id = getUidByLogname(logname,conn);
-if(_id && _id != id)
-	throw std::domain_error(gettext("logname belongs to differen user"));
+	unsigned int _id = getUidByLogname(logname,conn);
+	if(_id && _id != id)
+		throw std::domain_error(gettext("logname belongs to differen user"));
 
-if(dispname.empty())
-	dispname = logname;
+	if(dispname.empty())
+		dispname = logname;
 
-_id = getUidByDispname(dispname,conn);
-if(_id && _id != id)
-	throw std::domain_error(gettext("dispname belongs to differen user"));
+	_id = getUidByDispname(dispname,conn);
+	if(_id && _id != id)
+		throw std::domain_error(gettext("dispname belongs to differen user"));
 
-_id = getUidByLogname(dispname,conn); // do not allow to set other users logname as dispname
-if(_id && _id != id)
-	throw std::domain_error(gettext("dispname belongs to differen user"));
+	_id = getUidByLogname(dispname,conn); // do not allow to set other users logname as dispname
+	if(_id && _id != id)
+		throw std::domain_error(gettext("dispname belongs to differen user"));
 
-tntdb::Transaction trans_user(conn);
-try
-{
-	conn.prepare("UPDATE vuser SET logname = :Ilogname, dispname = :Idispname,"
-			" surname = :Isurname, name = :Iname, mail = :Imail,"
-			" mtime = now() WHERE id = :Iu_id")
-	.setString("Ilogname", logname)
-	.setString("Idispname", dispname)
-	.setString("Isurname", surname)
-	.setString("Iname", name)
-	.setString("Imail", mail)
-	.setUnsigned("Iu_id", id)
-	.execute();
-}
-catch(const std::exception& er_db)
-{
-	log_error(er_db.what());
-	throw std::domain_error(gettext("could not update user"));
-}
+	tntdb::Transaction trans_user(conn);
+	try
+	{
+		dbCommitBase(conn); //init base, INSERT if id==0, otherwise UPDATE
 
-try
-{
-	Cache<User>& user_cache = Cache<User>::getInstance();
-	trans_user.commit();
-	user_cache.clear(id);
-}
-catch(const std::exception& er_trans)
-{
-	log_error(er_trans.what());
-	throw std::domain_error(gettext("commit failed"));
-}
+		conn.prepare("UPDATE vuser SET logname = :Ilogname, dispname = :Idispname,"
+			" surname = :Isurname, name = :Iname, mail = :Imail"
+			" WHERE id = :Iid")
+		.setString("Ilogname", logname)
+		.setString("Idispname", dispname)
+		.setString("Isurname", surname)
+		.setString("Iname", name)
+		.setString("Imail", mail)
+		.setUnsigned("Iid", id)
+		.execute();
+	}
+	catch(const std::exception& er_db)
+	{
+		log_error(er_db.what());
+		throw std::domain_error(gettext("could not write user data"));
+	}
+
+	try
+	{
+		Cache<User>& user_cache = Cache<User>::getInstance();
+		trans_user.commit();
+		user_cache.clear(id);
+	}
+	catch(const std::exception& er_trans)
+	{
+		log_error(er_trans.what());
+		throw std::domain_error(gettext("commit failed"));
+	}
 }
 
 // end User

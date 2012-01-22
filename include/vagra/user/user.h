@@ -46,7 +46,7 @@ class User: public BaseObject
 	std::string mail;
 
     public:
-	User() {}
+	User() : BaseObject("vuser") {}
 	explicit User(const unsigned int);
 	operator bool() const;
 	operator int() const;
@@ -67,8 +67,7 @@ class User: public BaseObject
 	void setName(const std::string&);
 	void setMail(const std::string&);
 
-	void dbInsert();
-	void dbUpdate();
+	void dbCommit();
 };
 
 unsigned int getUidByLogname(const std::string&);

@@ -108,7 +108,7 @@ void ArticleCache::initInv()
                 Nexus& nx = Nexus::getInstance();
                 dbconn conn = nx.dbConnection();
                 tntdb::Statement q_art_ids = conn.prepare(
-                        "SELECT art_id FROM articles WHERE art_id > 0 ORDER BY art_id ASC");
+                        "SELECT id FROM articles WHERE id > 0 ORDER BY id ASC");
                 tntdb::Result res_art_ids = q_art_ids.select();
                 for(tntdb::Result::const_iterator it = res_art_ids.begin();
                                 it != res_art_ids.end(); it++)
@@ -154,12 +154,13 @@ ArticleCache::size_type ArticleCache::invSize() const
         return inventory.size();
 }
 
-void ArticleCache::invAdd(unsigned int art_id)
+void ArticleCache::invAdd(unsigned int _id)
 {
         cxxtools::WriteLock wlock(id_inv_mutex);
-        if(!std::binary_search(inventory.rbegin(), inventory.rend(), art_id))
-                inventory.push_back(art_id);
+        if(!std::binary_search(inventory.begin(), inventory.end(), _id))
+                inventory.push_back(_id);
 }
+
 void ArticleCache::updateMTime()
 {
         try
@@ -188,11 +189,11 @@ vdate ArticleCache::getMTime()
         return mtime;
 }
 
-void ArticleCache::invRemove(unsigned int art_id)
+void ArticleCache::invRemove(unsigned int _id)
 {
         cxxtools::WriteLock wlock(id_inv_mutex);
         std::vector<unsigned int>::iterator it =
-                std::find(inventory.begin(), inventory.end(), art_id);
+                std::find(inventory.begin(), inventory.end(), _id);
         if(it != inventory.end())
                 inventory.erase(it);
 }

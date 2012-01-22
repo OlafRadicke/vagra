@@ -50,7 +50,7 @@ log_define("vagra")
 
 //begin Passwd
 
-Passwd::Passwd(const unsigned _uid)
+Passwd::Passwd(const unsigned int _uid)
 {
 	try
 	{
@@ -82,13 +82,13 @@ Passwd::Passwd(const std::string& passwd)
 	genHash(passwd);
 }
 
-Passwd::Passwd(const unsigned _uid, const std::string& passwd)
+Passwd::Passwd(const unsigned int _uid, const std::string& passwd)
 	: uid(_uid)
 {
 	genHash(passwd);
 }
 
-void Passwd::setUser(const unsigned _uid)
+void Passwd::setUser(const unsigned int _uid)
 {
 	uid = _uid;
 }

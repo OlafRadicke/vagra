@@ -40,21 +40,35 @@ namespace vagra
 
 class BaseObject
 {
-	virtual void dbInsert() = NULL;
-	virtual void dbUpdate() = NULL;
+	BaseObject() {} //need tablename
+
+	virtual void dbCommit() = NULL;
 	virtual void clear() = NULL;
+	std::string tablename;
 
     protected:
-	BaseObject() :
-       		id(0) {}
+
+	BaseObject(const std::string& _tablename) :
+		tablename(_tablename),
+		id(0), oid(0), gid(0),
+		read_level(126),
+		write_level(126) {}
+
+	BaseObject(const std::string&, const unsigned int);
+
 	unsigned int id;
-	std::string title;
-	std::string head;
-	std::string abstract;
-	std::string text;
-	std::string author;
+	unsigned int oid; //Owner ID
+	unsigned int gid; //Group ID
+	unsigned char read_level;
+	unsigned char write_level;
 	vdate ctime;
 	vdate mtime;
+
+	/* call dbCommitBase(conn) in the same transaction as the
+	 * derived dbCommit, thus there won't be any baseobject
+	 * entries in the database if derived dbCommit throws
+	 */
+	void dbCommitBase(dbconn&);
 	void clearBase();
 
     public:
@@ -63,19 +77,19 @@ class BaseObject
 	virtual ~BaseObject() {}
 
 	const unsigned int getId() const;
-	const std::string& getTitle() const;
-	const std::string& getHead() const;
-	const std::string& getAbstract() const;
-	const std::string& getText() const;
-	const std::string& getAuthor() const;
+	const unsigned int getOwner() const;
+	const unsigned int getGroup() const;
+	const unsigned char getReadLevel() const;
+	const unsigned char getWriteLevel() const;
+
 	const vdate& getCTime() const;
 	const vdate& getMTime() const;
 
-	void setTitle(const std::string&);
-	void setHead(const std::string&);
-	void setAbstract(const std::string&);
-	void setText(const std::string&);
-	void setAuthor(const std::string&);
+
+	void setOwner(unsigned int);
+	void setGroup(unsigned int);
+	void setReadLevel(unsigned char);
+	void setWriteLevel(unsigned char);
 };
 
 } //namespace vagra

@@ -40,26 +40,42 @@ namespace vagra
 
 class Article: public BaseObject
 {
+	std::string title;
+	std::string head;
+	std::string abstract;
+	std::string text;
+	std::string author;
 	std::string url;
 	std::vector<std::string> tags;
 	std::vector<unsigned int> comment_ids;
 
     public:
-	Article() {}
+	Article() : BaseObject("articles") {}
 	explicit Article(const std::string&);
 	explicit Article(const unsigned int);
+	operator bool() const;
 	Article* operator->() { return this; }
 	void clear();
 
+	const std::string& getTitle() const;
+	const std::string& getHead() const;
+	const std::string& getAbstract() const;
+	const std::string& getText() const;
+	const std::string& getAuthor() const;
 	const std::string& getUrl() const;
 	const std::vector<std::string>& getTags() const;
 	std::string getTagString() const;
 	std::vector<unsigned int> getCommentIds() const;
 	const szt_vecint getCommentAmount() const;
 
+	void setTitle(const std::string&);
+	void setHead(const std::string&);
+	void setAbstract(const std::string&);
+	void setText(const std::string&);
+	void setAuthor(const std::string&);
 	void setTags(const std::string&);
-	void dbInsert();
-	void dbUpdate();
+
+	void dbCommit();
 };
 
 unsigned int getArticleIdByTitle (const std::string&);

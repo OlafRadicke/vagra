@@ -26,26 +26,101 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <libintl.h>
+#include <stdexcept>
+
+#include <cxxtools/log.h>
+#include <cxxtools/loginit.h>
+#include <tntdb/row.h>
+
+#include <vagra/nexus.h>
 #include <vagra/baseobject.h>
 
 namespace vagra
 {
 
+log_define("vagra")
+
 //begin BaseObject
+
+BaseObject::BaseObject(const std::string& _tablename, const unsigned int _id)
+	: tablename(_tablename), id(_id), oid(0), gid(0), read_level(126), write_level(126)
+{
+        try
+	{
+                Nexus& nx = Nexus::getInstance();
+                dbconn conn = nx.dbConnection();
+
+		tntdb::Statement q_obj = conn.prepare(
+                        "SELECT oid, gid, read_level, write_level, ctime, mtime"
+                                " FROM " + tablename + " WHERE id = :Qid");
+                q_obj.setUnsigned("Qid", id);
+                tntdb::Row row_obj = q_obj.selectRow();
+                if(row_obj.empty())
+                        throw std::domain_error(gettext("couldn't read object form db"));
+                if(!row_obj[0].isNull())
+                        oid = row_obj[0].getUnsigned();
+                if(!row_obj[1].isNull())
+                        gid = row_obj[1].getUnsigned();
+                if(!row_obj[2].isNull())
+                        read_level = row_obj[2].getUnsigned();
+                if(!row_obj[3].isNull())
+                        write_level = row_obj[3].getUnsigned();	
+		if(!row_obj[4].isNull())
+			ctime = row_obj[4].getDatetime();
+		if(!row_obj[5].isNull())
+			mtime = row_obj[5].getDatetime();
+        }
+        catch(const std::exception& er_obj)
+        {
+                log_error(er_obj.what());
+                throw std::domain_error(gettext("could not init BaseObject"));
+        }
+}
 
 BaseObject::operator bool() const
 {
-	return(!title.empty() && !head.empty() && (!text.empty() || !abstract.empty()));
+	return id;
+}
+
+void BaseObject::dbCommitBase(dbconn& conn)
+{
+	if(id) // id!=null, update. otherwise insert
+	{
+		conn.prepare("UPDATE " + tablename + " SET oid = :Ioid, gid = :Igid,"
+                	" read_level = :Iread_level, write_level = :Iwrite_level,"
+		        " mtime = now() WHERE id = :Iid")
+		.setUnsigned("Ioid", oid)
+		.setUnsigned("Igid", gid)
+		.setUnsigned("Iread_level", read_level)
+		.setUnsigned("Iwrite_level", write_level)
+		.setUnsigned("Iid", id)
+		.execute();
+	}
+	else
+	{
+		tntdb::Statement ins_obj = conn.prepare("INSERT INTO "
+			+ tablename + " (oid, gid, read_level, write_level)"
+                	" VALUES (:Ioid, :Igid, :Iread_level, :Iwrite_level)"
+		        " RETURNING id");		// get id from fresh created obj
+		ins_obj.setUnsigned("Ioid", oid);
+		ins_obj.setUnsigned("Igid", gid);
+		ins_obj.setUnsigned("Iread_level", read_level);
+		ins_obj.setUnsigned("Iwrite_level", write_level);
+		tntdb::Row row_obj = ins_obj.selectRow();
+		if(row_obj[0].isNull())
+                        throw std::domain_error(gettext("insert didn't retuned an id"));
+                id = row_obj[0].getUnsigned();
+	}
 }
 
 void BaseObject::clearBase()
 {
 	id = 0;
-	title.clear();
-	head.clear();
-	abstract.clear();
-	text.clear();
-	author.clear();
+	oid = 0;
+	gid = 0;
+	read_level = 126;
+	write_level = 126;
 	ctime = vdate();
 	mtime = vdate();
 }
@@ -55,29 +130,24 @@ const unsigned int BaseObject::getId() const
 	return id;
 }
 
-const std::string& BaseObject::getTitle() const
+const unsigned int BaseObject::getOwner() const
 {
-	return title;
+	return oid;
 }
 
-const std::string& BaseObject::getHead() const
+const unsigned int BaseObject::getGroup() const
 {
-	return head;
+	return gid;
 }
 
-const std::string& BaseObject::getAbstract() const
+const unsigned char BaseObject::getReadLevel() const
 {
-	return abstract;
+	return read_level;
 }
 
-const std::string& BaseObject::getText() const
+const unsigned char BaseObject::getWriteLevel() const
 {
-	return text;
-}
-
-const std::string& BaseObject::getAuthor() const
-{
-	return author;
+	return write_level;
 }
 
 const vdate& BaseObject::getCTime() const
@@ -90,29 +160,25 @@ const vdate& BaseObject::getMTime() const
 	return mtime;
 }
 
-void BaseObject::setTitle(const std::string& s)
+
+void BaseObject::setOwner(unsigned int _oid)
 {
-	title = s;
+	oid = _oid;
 }
 
-void BaseObject::setHead(const std::string& s)
+void BaseObject::setGroup(unsigned int _gid)
 {
-	head = s;
+	gid = _gid;
 }
 
-void BaseObject::setAbstract(const std::string& s)
+void BaseObject::setReadLevel(unsigned char _lev)
 {
-	abstract = s;
+	read_level = _lev;
 }
 
-void BaseObject::setText(const std::string& s)
+void BaseObject::setWriteLevel(unsigned char _lev)
 {
-	text = s;
-}
-
-void BaseObject::setAuthor(const std::string& s)
-{
-	author = s;
+	write_level = _lev;
 }
 
 //end BaseObject

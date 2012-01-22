@@ -2,7 +2,7 @@ include ../../Makefile.inc
 
 CXXFLAGS  = -I../../include $(VAGRA_CXXFLAGS)
 
-all: passwd.o
+all: passwd.o auth.o
 	cp *.o ../../
 
 clean:

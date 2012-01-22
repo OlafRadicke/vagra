@@ -41,16 +41,16 @@ class Passwd
 	Passwd() {}
 	std::string salt;
 	std::string hash;
-	unsigned uid;
+	unsigned int uid;
 
 	void genHash(const std::string&);
 
     public:
-	explicit Passwd(const unsigned);
+	explicit Passwd(const unsigned int);
 	explicit Passwd(const std::string&);
 	Passwd(const unsigned int, const std::string&);
 
-	void setUser(const unsigned);
+	void setUser(const unsigned int);
 	bool verify(const std::string&);
 
 	void dbInsert() { dbUpdate(); }

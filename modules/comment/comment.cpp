@@ -47,18 +47,17 @@ log_define("vagra")
 
 //begin Comment
 
-Comment::Comment(const unsigned int comm_id) :
-	ref_id(0),
-	art_id(0)
+Comment::Comment(const unsigned int _id)
+	: BaseObject("comments", _id), //call baseconstructor(db_tablename,id)
+	  ref_id(0), art_id(0)
 {
-	id = comm_id;
 	try
 	{
 		Nexus& nx = Nexus::getInstance();
 		dbconn conn = nx.dbConnection();
 		tntdb::Statement q_comment = conn.prepare(
-			"SELECT art_id, comm_ref, comment, name, home, mail, ctime, mtime"
-				" FROM comments WHERE comm_id = :Qid");
+			"SELECT art_id, comm_ref, comment, name, home, mail"
+				" FROM comments WHERE id = :Qid");
 		q_comment.setUnsigned("Qid", id);
 		tntdb::Row row_comment = q_comment.selectRow();
 		if(!row_comment[0].isNull())
@@ -73,10 +72,6 @@ Comment::Comment(const unsigned int comm_id) :
 			homepage = row_comment[4].getString();
 		if(!row_comment[5].isNull())
 			mail = row_comment[5].getString();
-		if(!row_comment[6].isNull())
-			ctime = row_comment[6].getDatetime();
-		if(!row_comment[7].isNull())
-			mtime = row_comment[7].getDatetime();
 	}
 	catch(const std::exception& er_comm)
 	{
@@ -92,8 +87,11 @@ Comment::operator bool() const
 void Comment::clear()
 {
 	clearBase();
+
 	ref_id = 0;
 	art_id = 0;
+	text.clear();
+        author.clear();
 	homepage.clear();
 	mail.clear();
 }
@@ -106,6 +104,16 @@ const unsigned int Comment::getArticle() const
 const unsigned int Comment::getRef() const
 {
 	return ref_id;
+}
+
+const std::string& Comment::getText() const
+{
+	return text;
+}
+
+const std::string& Comment::getAuthor() const
+{
+	return author;
 }
 
 const std::string& Comment::getHomepage() const
@@ -128,6 +136,16 @@ void Comment::setRef(const unsigned int referece_id)
 	ref_id = referece_id;
 }
 
+void Comment::setText(const std::string& s)
+{
+	text = s;
+}
+
+void Comment::setAuthor(const std::string& s)
+{
+	author = s;
+}
+
 void Comment::setHomepage(const std::string& s)
 {
 	homepage = s;
@@ -138,51 +156,7 @@ void Comment::setMail(const std::string& s)
 	mail = s;
 }
 
-void Comment::dbInsert()
-{
-	if(author.empty())
-		throw std::domain_error(gettext("need an author"));
-	if(text.empty())
-		throw std::domain_error(gettext("need text"));
-	if(!art_id)
-		throw std::domain_error(gettext("need article id"));
-
-	Nexus& nx = Nexus::getInstance();
-	dbconn conn = nx.dbConnection();
-
-	tntdb::Transaction trans_comm(conn);
-	try
-	{
-		conn.prepare("INSERT INTO comments (art_id, comm_ref, comment , name, home, mail)"
-			       " VALUES (:Iart_id, :Iref_id, :Itext, :Iauthor, :Ihomepage, :Imail)")
-		.setUnsigned("Iart_id", art_id)
-		.setUnsigned("Iref_id", ref_id)
-		.setString("Itext", text)
-		.setString("Iauthor", author)
-		.setString("Ihomepage", homepage)
-		.setString("Imail", mail)
-		.execute();
-	}
-	catch(const std::exception& er_db)
-	{
-		log_error(er_db.what());
-		throw std::domain_error(gettext("could not insert comment"));
-	}
-
-	try
-	{
-		ArticleCache& art_cache = ArticleCache::getInstance();
-		trans_comm.commit();
-		art_cache.clear(art_id);
-	}
-	catch(const std::exception& er_trans)
-	{
-		log_error(er_trans.what());
-		throw std::domain_error(gettext("commit failed"));
-	}
-}
-
-void Comment::dbUpdate()
+void Comment::dbCommit()
 {
 	if(author.empty())
 		throw std::domain_error(gettext("need an author"));
@@ -197,14 +171,17 @@ void Comment::dbUpdate()
 	tntdb::Transaction trans_comm(conn);
 	try
 	{
-		conn.prepare("UPDATE comments SET comm_ref = :Iref_id, comment = :Itext, name = :Iauthor, "
-				"home = :Ihomepage, mail = :Imail, mtime = now() WHERE comm_id = :Icomm_id")
+		dbCommitBase(conn); //init base, INSERT if id==0, otherwise UPDATE
+
+		conn.prepare("UPDATE comments SET art_id = :Iart_id, comm_ref = :Iref_id, comment = :Itext,"
+				" name = :Iauthor, home = :Ihomepage, mail = :Imail WHERE id = :Iid")
+		.setUnsigned("Iart_id", art_id)
 		.setUnsigned("Iref_id", ref_id)
 		.setString("Itext", text)
 		.setString("Iauthor", author)
 		.setString("Ihomepage", homepage)
 		.setString("Imail", mail)
-		.setUnsigned("Icomm_id", id)
+		.setUnsigned("Iid", id)
 		.execute();
 	}
 	catch(const std::exception& er_db)
@@ -215,8 +192,10 @@ void Comment::dbUpdate()
 
 	try
 	{
+		ArticleCache& art_cache = ArticleCache::getInstance();
 		Cache<Comment>& comm_cache = Cache<Comment>::getInstance();
 		trans_comm.commit();
+		art_cache.clear(art_id);
 		comm_cache.clear(id);
 	}
 	catch(const std::exception& er_trans)
