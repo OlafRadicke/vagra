@@ -31,10 +31,10 @@
 namespace vagra
 {
 
-CachedUser::CachedUser(const unsigned int u_id)
+CachedUser::CachedUser(const unsigned int _id, const unsigned int _aid)
 {
 	Cache<User>& user_cache = Cache<User>::getInstance();
-	user = user_cache.get(u_id);
+	user = user_cache.get(_id,_aid);
 }
 
 CachedUser::operator bool() const

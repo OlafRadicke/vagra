@@ -48,14 +48,14 @@ log_define("vagra")
 
 //begin Article
 
-Article::Article(const std::string& art_title)
+Article::Article(const std::string& art_title, const unsigned int _aid)
 	: BaseObject("articles")
 {
-	*this = Article(cachedGetArticleIdByTitle(art_title));
+	*this = Article(cachedGetArticleIdByTitle(art_title), _aid);
 }
 
-Article::Article(const unsigned int _id)
-	: BaseObject("articles", _id) //call baseconstructor(db_tablename,id)
+Article::Article(const unsigned int _id, const unsigned int _aid)
+	: BaseObject("articles", _id, _aid) //call baseconstructor(db_tablename,objId,_authId)
 {
 	try
 	{

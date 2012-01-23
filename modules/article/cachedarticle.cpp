@@ -36,16 +36,16 @@
 namespace vagra
 {
 
-CachedArticle::CachedArticle(const unsigned int art_id)
+CachedArticle::CachedArticle(const unsigned int art_id, const unsigned int _aid)
 {
 	ArticleCache& art_cache = ArticleCache::getInstance();
-	art = art_cache.get(art_id);
+	art = art_cache.get(art_id,_aid);
 }
 
-CachedArticle::CachedArticle(const std::string& art_title)
+CachedArticle::CachedArticle(const std::string& art_title, const unsigned int _aid)
 {
 	ArticleCache& art_cache = ArticleCache::getInstance();
-	art = art_cache.get(cachedGetArticleIdByTitle(art_title));
+	art = art_cache.get(cachedGetArticleIdByTitle(art_title),_aid);
 }
 
 CachedArticle::operator bool() const

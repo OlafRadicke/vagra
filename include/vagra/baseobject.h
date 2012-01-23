@@ -46,6 +46,8 @@ class BaseObject
 	virtual void clear() = NULL;
 	std::string tablename;
 
+	// check_permission could be used esle where, thus no member
+	friend unsigned char check_permission(const BaseObject&, const unsigned int);
     protected:
 
 	BaseObject(const std::string& _tablename) :
@@ -54,7 +56,10 @@ class BaseObject
 		read_level(126),
 		write_level(126) {}
 
-	BaseObject(const std::string&, const unsigned int);
+	/* call BaseObject("tablename", objId, authId), from derived initializer
+	 * if authId is obmitted anonymous user 0 will be used
+	 */
+	BaseObject(const std::string&, const unsigned int, const unsigned int = 0);
 
 	unsigned int id;
 	unsigned int oid; //Owner ID
@@ -91,6 +96,8 @@ class BaseObject
 	void setReadLevel(unsigned char);
 	void setWriteLevel(unsigned char);
 };
+
+unsigned char check_permission(const BaseObject& _obj, unsigned int _aid);
 
 } //namespace vagra
 

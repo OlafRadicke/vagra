@@ -41,7 +41,7 @@ class CachedUser
 	Cache<User>::SharedObject user;
 
     public:
-	explicit CachedUser(const unsigned int);
+	explicit CachedUser(const unsigned int, const unsigned int = 0);
 	operator bool() const;
 	operator int() const;
 	operator unsigned int() const;

@@ -97,7 +97,7 @@ class BaseCache : private cxxtools::NonCopyable
 		return cache_inst.getMaxElements();
 	}
 
-	SharedObject get(const unsigned int id)
+	SharedObject get(const unsigned int id, const unsigned int _aid = 0) //assume 0 as anonymous
 	{
 		SharedObject obj;
 		std::pair<bool, SharedObject> rdata;
@@ -114,7 +114,7 @@ class BaseCache : private cxxtools::NonCopyable
 		{
 			try
 			{
-				SharedObject new_obj( new Object(id));
+				SharedObject new_obj( new Object(id,1)); //FIXME assume 1 as admin
 				if(*new_obj)
 				{
 					cxxtools::MutexLock lock(mutex);
@@ -125,7 +125,7 @@ class BaseCache : private cxxtools::NonCopyable
 				else
 				{
 					if(id != 0)
-						obj = get(0);
+						obj = get(0,_aid);
 				}
 			}
 			catch(const std::exception& er_obj)
@@ -136,6 +136,8 @@ class BaseCache : private cxxtools::NonCopyable
 		}
 		if(!obj)
 			throw std::domain_error(gettext("failed to read any object"));
+		if(check_permission(*obj,  _aid) < obj->getReadLevel())
+			throw std::domain_error(gettext("insufficient privileges"));
 
 		return obj;
 	}

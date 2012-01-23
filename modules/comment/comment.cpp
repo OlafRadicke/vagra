@@ -47,8 +47,8 @@ log_define("vagra")
 
 //begin Comment
 
-Comment::Comment(const unsigned int _id)
-	: BaseObject("comments", _id), //call baseconstructor(db_tablename,id)
+Comment::Comment(const unsigned int _id, const unsigned int _aid)
+	: BaseObject("comments", _id, _aid), //call baseconstructor(db_tablename,objId,authId)
 	  ref_id(0), art_id(0)
 {
 	try

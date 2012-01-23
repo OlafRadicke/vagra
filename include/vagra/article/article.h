@@ -51,8 +51,8 @@ class Article: public BaseObject
 
     public:
 	Article() : BaseObject("articles") {}
-	explicit Article(const std::string&);
-	explicit Article(const unsigned int);
+	explicit Article(const std::string&, const unsigned int = 0);
+	explicit Article(const unsigned int, const unsigned int = 0);
 	operator bool() const;
 	Article* operator->() { return this; }
 	void clear();

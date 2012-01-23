@@ -47,7 +47,7 @@ class User: public BaseObject
 
     public:
 	User() : BaseObject("vuser") {}
-	explicit User(const unsigned int);
+	explicit User(const unsigned int, const unsigned int = 0);
 	operator bool() const;
 	operator int() const;
 	operator unsigned int() const;

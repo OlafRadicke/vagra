@@ -43,7 +43,7 @@ log_define("vagra")
 
 //begin BaseObject
 
-BaseObject::BaseObject(const std::string& _tablename, const unsigned int _id)
+BaseObject::BaseObject(const std::string& _tablename, const unsigned int _id, const unsigned int _aid)
 	: tablename(_tablename), id(_id), oid(0), gid(0), read_level(126), write_level(126)
 {
         try
@@ -76,6 +76,8 @@ BaseObject::BaseObject(const std::string& _tablename, const unsigned int _id)
                 log_error(er_obj.what());
                 throw std::domain_error(gettext("could not init BaseObject"));
         }
+	if(check_permission(*this, _aid) < read_level)
+		throw std::domain_error(gettext("insufficient privileges"));
 }
 
 BaseObject::operator bool() const
@@ -182,5 +184,23 @@ void BaseObject::setWriteLevel(unsigned char _lev)
 }
 
 //end BaseObject
+
+unsigned char check_permission(const BaseObject& _obj, unsigned int _aid)
+{
+        unsigned char _auth_level(2);
+
+        if(_aid) {
+                _auth_level += 6;
+                if(_aid == _obj.gid)
+                        _auth_level += 14;
+                if(_aid == _obj.oid)
+                        _auth_level += 30;
+                if(_aid == 4) //assume 4 as groupadmin //FIXME
+                        _auth_level += 62;
+                if(_aid == 1) //assume 1 as admin //FIXME
+                        _auth_level += 126;
+        }
+        return _auth_level;
+}
 
 } //namespace vagra

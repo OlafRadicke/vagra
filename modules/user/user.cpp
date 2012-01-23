@@ -47,8 +47,8 @@ log_define("vagra")
 
 //begin User
 
-User::User(const unsigned int _id)
-	: BaseObject("vuser", _id) //call baseconstructor(db_tablename,id)
+User::User(const unsigned int _id, const unsigned _aid)
+	: BaseObject("vuser", _id,_aid) //call baseconstructor(db_tablename,id,authId)
 {
 	try
 	{

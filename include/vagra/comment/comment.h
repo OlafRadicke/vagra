@@ -50,7 +50,7 @@ class Comment: public BaseObject
 	Comment() : BaseObject("comments"),
 		ref_id(0),
 		art_id(0) {}
-	explicit Comment(const unsigned int);
+	explicit Comment(const unsigned int, const unsigned int = 0);
 	operator bool() const;
 	Comment* operator->() { return this; }
 	void clear();
