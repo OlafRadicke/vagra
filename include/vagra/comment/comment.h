@@ -69,7 +69,7 @@ class Comment: public BaseObject
 	void setHomepage(const std::string&);
 	void setMail(const std::string&);
 
-	void dbCommit();
+	void dbCommit(const unsigned int = 0);
 };
 
 } //namespace vagra

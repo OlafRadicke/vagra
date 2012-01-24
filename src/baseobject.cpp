@@ -44,7 +44,7 @@ log_define("vagra")
 //begin BaseObject
 
 BaseObject::BaseObject(const std::string& _tablename, const unsigned int _id, const unsigned int _aid)
-	: tablename(_tablename), id(_id), oid(0), gid(0), read_level(126), write_level(126)
+	: oid(0), gid(0), read_level(126), add_level(126), write_level(126), id(_id), tablename(_tablename)
 {
         try
 	{
@@ -52,7 +52,7 @@ BaseObject::BaseObject(const std::string& _tablename, const unsigned int _id, co
                 dbconn conn = nx.dbConnection();
 
 		tntdb::Statement q_obj = conn.prepare(
-                        "SELECT oid, gid, read_level, write_level, ctime, mtime"
+                        "SELECT oid, gid, read_level, add_level, write_level, ctime, mtime"
                                 " FROM " + tablename + " WHERE id = :Qid");
                 q_obj.setUnsigned("Qid", id);
                 tntdb::Row row_obj = q_obj.selectRow();
@@ -65,18 +65,20 @@ BaseObject::BaseObject(const std::string& _tablename, const unsigned int _id, co
                 if(!row_obj[2].isNull())
                         read_level = row_obj[2].getUnsigned();
                 if(!row_obj[3].isNull())
-                        write_level = row_obj[3].getUnsigned();	
-		if(!row_obj[4].isNull())
-			ctime = row_obj[4].getDatetime();
+                        add_level = row_obj[3].getUnsigned();	
+                if(!row_obj[4].isNull())
+                        write_level = row_obj[4].getUnsigned();	
 		if(!row_obj[5].isNull())
-			mtime = row_obj[5].getDatetime();
+			ctime = row_obj[5].getDatetime();
+		if(!row_obj[6].isNull())
+			mtime = row_obj[6].getDatetime();
         }
         catch(const std::exception& er_obj)
         {
                 log_error(er_obj.what());
                 throw std::domain_error(gettext("could not init BaseObject"));
         }
-	if(check_permission(*this, _aid) < read_level)
+	if(getAuthLevel(_aid) < read_level)
 		throw std::domain_error(gettext("insufficient privileges"));
 }
 
@@ -85,29 +87,38 @@ BaseObject::operator bool() const
 	return id;
 }
 
-void BaseObject::dbCommitBase(dbconn& conn)
+void BaseObject::dbCommitBase(dbconn& conn, const unsigned int _aid)
 {
 	if(id) // id!=null, update. otherwise insert
 	{
+		if(getAuthLevel(_aid) < write_level)
+			throw std::domain_error(gettext("insufficient privileges"));
+
 		conn.prepare("UPDATE " + tablename + " SET oid = :Ioid, gid = :Igid,"
-                	" read_level = :Iread_level, write_level = :Iwrite_level,"
-		        " mtime = now() WHERE id = :Iid")
+                	" read_level = :Iread_level, add_level = :Iadd_level,"
+		        " write_level = :Iwrite_level, mtime = now() WHERE id = :Iid")
 		.setUnsigned("Ioid", oid)
 		.setUnsigned("Igid", gid)
 		.setUnsigned("Iread_level", read_level)
+		.setUnsigned("Iadd_level", add_level)
 		.setUnsigned("Iwrite_level", write_level)
 		.setUnsigned("Iid", id)
 		.execute();
 	}
 	else
 	{
+		//if authId doesn't reach write_level, adding new objects might still be desired
+		if(getAuthLevel(_aid) < write_level && getAuthLevel(_aid) < add_level)
+			throw std::domain_error(gettext("insufficient privileges"));
+
 		tntdb::Statement ins_obj = conn.prepare("INSERT INTO "
-			+ tablename + " (oid, gid, read_level, write_level)"
-                	" VALUES (:Ioid, :Igid, :Iread_level, :Iwrite_level)"
+			+ tablename + " (oid, gid, read_level, add_level, write_level)"
+                	" VALUES (:Ioid, :Igid, :Iread_level, :Iadd_level, :Iwrite_level)"
 		        " RETURNING id");		// get id from fresh created obj
 		ins_obj.setUnsigned("Ioid", oid);
 		ins_obj.setUnsigned("Igid", gid);
 		ins_obj.setUnsigned("Iread_level", read_level);
+		ins_obj.setUnsigned("Iadd_level", add_level);
 		ins_obj.setUnsigned("Iwrite_level", write_level);
 		tntdb::Row row_obj = ins_obj.selectRow();
 		if(row_obj[0].isNull())
@@ -122,6 +133,7 @@ void BaseObject::clearBase()
 	oid = 0;
 	gid = 0;
 	read_level = 126;
+	add_level = 126;
 	write_level = 126;
 	ctime = vdate();
 	mtime = vdate();
@@ -147,6 +159,11 @@ const unsigned char BaseObject::getReadLevel() const
 	return read_level;
 }
 
+const unsigned char BaseObject::getAddLevel() const
+{
+	return add_level;
+}
+
 const unsigned char BaseObject::getWriteLevel() const
 {
 	return write_level;
@@ -162,38 +179,15 @@ const vdate& BaseObject::getMTime() const
 	return mtime;
 }
 
-
-void BaseObject::setOwner(unsigned int _oid)
-{
-	oid = _oid;
-}
-
-void BaseObject::setGroup(unsigned int _gid)
-{
-	gid = _gid;
-}
-
-void BaseObject::setReadLevel(unsigned char _lev)
-{
-	read_level = _lev;
-}
-
-void BaseObject::setWriteLevel(unsigned char _lev)
-{
-	write_level = _lev;
-}
-
-//end BaseObject
-
-unsigned char check_permission(const BaseObject& _obj, unsigned int _aid)
+const unsigned char BaseObject::getAuthLevel(const unsigned int _aid) const
 {
         unsigned char _auth_level(2);
 
         if(_aid) {
                 _auth_level += 6;
-                if(_aid == _obj.gid)
+                if(_aid == gid)
                         _auth_level += 14;
-                if(_aid == _obj.oid)
+                if(_aid == oid)
                         _auth_level += 30;
                 if(_aid == 4) //assume 4 as groupadmin //FIXME
                         _auth_level += 62;
@@ -202,5 +196,48 @@ unsigned char check_permission(const BaseObject& _obj, unsigned int _aid)
         }
         return _auth_level;
 }
+
+void BaseObject::setOwner(const unsigned int _oid, const unsigned int _aid)
+{	
+	// allow taking ownership of anonymous owned objects if write_level is low enough
+	if(oid == 0 && write_level <= 30)
+		oid = _oid;
+	else
+	{
+		if(getAuthLevel(_aid) < write_level)
+			throw std::domain_error(gettext("insufficient privileges"));
+		oid = _oid;
+	}
+}
+
+void BaseObject::setGroup(const unsigned int _gid, const unsigned int _aid)
+{
+	if(getAuthLevel(_aid) < write_level)
+		throw std::domain_error(gettext("insufficient privileges"));
+	gid = _gid;
+}
+
+void BaseObject::setReadLevel(const unsigned char _lev, const unsigned int _aid)
+{
+	if(getAuthLevel(_aid) < write_level)
+		throw std::domain_error(gettext("insufficient privileges"));
+	read_level = _lev;
+}
+
+void BaseObject::setAddLevel(const unsigned char _lev, const unsigned int _aid)
+{
+	if(getAuthLevel(_aid) < write_level)
+		throw std::domain_error(gettext("insufficient privileges"));
+	add_level = _lev;
+}
+
+void BaseObject::setWriteLevel(const unsigned char _lev, const unsigned int _aid)
+{
+	if(getAuthLevel(_aid) < write_level)
+		throw std::domain_error(gettext("insufficient privileges"));
+	write_level = _lev;
+}
+
+//end BaseObject
 
 } //namespace vagra

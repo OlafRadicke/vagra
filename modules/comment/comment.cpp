@@ -156,7 +156,7 @@ void Comment::setMail(const std::string& s)
 	mail = s;
 }
 
-void Comment::dbCommit()
+void Comment::dbCommit(const unsigned int _aid)
 {
 	if(author.empty())
 		throw std::domain_error(gettext("need an author"));
@@ -171,7 +171,7 @@ void Comment::dbCommit()
 	tntdb::Transaction trans_comm(conn);
 	try
 	{
-		dbCommitBase(conn); //init base, INSERT if id==0, otherwise UPDATE
+		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
 
 		conn.prepare("UPDATE comments SET art_id = :Iart_id, comm_ref = :Iref_id, comment = :Itext,"
 				" name = :Iauthor, home = :Ihomepage, mail = :Imail WHERE id = :Iid")

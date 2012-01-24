@@ -161,7 +161,7 @@ void User::setMail(const std::string& s)
 	mail = s;
 }
 
-void User::dbCommit()
+void User::dbCommit(const unsigned int _aid)
 {
 	if(logname.empty())
 		throw std::domain_error(gettext("need a login name name"));
@@ -193,7 +193,7 @@ void User::dbCommit()
 	tntdb::Transaction trans_user(conn);
 	try
 	{
-		dbCommitBase(conn); //init base, INSERT if id==0, otherwise UPDATE
+		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
 
 		conn.prepare("UPDATE vuser SET logname = :Ilogname, dispname = :Idispname,"
 			" surname = :Isurname, name = :Iname, mail = :Imail"

@@ -40,32 +40,33 @@ namespace vagra
 
 class BaseObject
 {
+	unsigned int oid; //Owner ID
+	unsigned int gid; //Group ID
+	unsigned char read_level;//read only
+	unsigned char add_level; //only for creation of new objects with default permissions
+	unsigned char write_level; //also allow update objects and modify permissions
+
 	BaseObject() {} //need tablename
 
-	virtual void dbCommit() = NULL;
+	virtual void dbCommit(const unsigned int = 0) = NULL;
 	virtual void clear() = NULL;
-	std::string tablename;
 
-	// check_permission could be used esle where, thus no member
-	friend unsigned char check_permission(const BaseObject&, const unsigned int);
     protected:
-
 	BaseObject(const std::string& _tablename) :
-		tablename(_tablename),
-		id(0), oid(0), gid(0),
+		oid(0), gid(0),
 		read_level(126),
-		write_level(126) {}
+		add_level(126),
+		write_level(126),
+		id(0), tablename(_tablename) {}
 
 	/* call BaseObject("tablename", objId, authId), from derived initializer
 	 * if authId is obmitted anonymous user 0 will be used
 	 */
 	BaseObject(const std::string&, const unsigned int, const unsigned int = 0);
 
-	unsigned int id;
-	unsigned int oid; //Owner ID
-	unsigned int gid; //Group ID
-	unsigned char read_level;
-	unsigned char write_level;
+	unsigned int id; //Object ID
+	std::string tablename; //Database tablename
+
 	vdate ctime;
 	vdate mtime;
 
@@ -73,7 +74,7 @@ class BaseObject
 	 * derived dbCommit, thus there won't be any baseobject
 	 * entries in the database if derived dbCommit throws
 	 */
-	void dbCommitBase(dbconn&);
+	void dbCommitBase(dbconn&, const unsigned int = 0);
 	void clearBase();
 
     public:
@@ -85,19 +86,19 @@ class BaseObject
 	const unsigned int getOwner() const;
 	const unsigned int getGroup() const;
 	const unsigned char getReadLevel() const;
+	const unsigned char getAddLevel() const;
 	const unsigned char getWriteLevel() const;
+	const unsigned char getAuthLevel(const unsigned int = 0) const;
 
 	const vdate& getCTime() const;
 	const vdate& getMTime() const;
 
-
-	void setOwner(unsigned int);
-	void setGroup(unsigned int);
-	void setReadLevel(unsigned char);
-	void setWriteLevel(unsigned char);
+	void setOwner(const unsigned int, const unsigned int = 0);
+	void setGroup(const unsigned int, const unsigned int = 0);
+	void setReadLevel(const unsigned char, const unsigned int = 0);
+	void setAddLevel(const unsigned char, const unsigned int = 0);
+	void setWriteLevel(const unsigned char, const unsigned int = 0);
 };
-
-unsigned char check_permission(const BaseObject& _obj, unsigned int _aid);
 
 } //namespace vagra
 

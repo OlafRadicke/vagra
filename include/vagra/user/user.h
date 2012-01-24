@@ -67,7 +67,7 @@ class User: public BaseObject
 	void setName(const std::string&);
 	void setMail(const std::string&);
 
-	void dbCommit();
+	void dbCommit(const unsigned int = 0);
 };
 
 unsigned int getUidByLogname(const std::string&);

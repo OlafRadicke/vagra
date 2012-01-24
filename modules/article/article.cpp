@@ -259,7 +259,7 @@ void Article::setTags(const std::string& s)
 
 }
 
-void Article::dbCommit()
+void Article::dbCommit(const unsigned int _aid)
 {
 	title = underscore2space(title);
 
@@ -279,7 +279,7 @@ void Article::dbCommit()
 	tntdb::Transaction trans_art(conn);
 	try
 	{
-		dbCommitBase(conn); //init base, INSERT if id==0, otherwise UPDATE
+		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
 
 		conn.prepare("UPDATE articles SET title = :Ititle, headline = :Ihead, abstract = :Iabstract,"
 			     " content = :Itext, author = :Iauthor  WHERE id = :Iid")

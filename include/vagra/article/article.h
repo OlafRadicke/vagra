@@ -75,7 +75,7 @@ class Article: public BaseObject
 	void setAuthor(const std::string&);
 	void setTags(const std::string&);
 
-	void dbCommit();
+	void dbCommit(const unsigned int = 0);
 };
 
 unsigned int getArticleIdByTitle (const std::string&);
