@@ -26,20 +26,28 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <vagra/nexus.h>
-#include <vagra/user/userpage.h>
+#ifndef VARGA_AUTH_H
+#define VARGA_AUTH_H
+
+#include <string>
 
 namespace vagra
 {
 
-UserPage::UserPage (const std::vector<unsigned int>& cont_ids, unsigned int arg_page, unsigned int arg_amount)
+class BaseObject;
+
+class Auth
 {
-	if(arg_amount == 0)
-	{
-		Nexus& nx = Nexus::getInstance();
-		arg_amount = nx.getConfig("user_page_size", nx.getPageSize());
-	}
-	Init(cont_ids, arg_page, arg_amount);
-}
+	unsigned int uid;
+
+    public:
+	Auth() :
+       		uid(0) {};
+	Auth(const unsigned int, const std::string&);
+
+	operator unsigned int() const { return uid; }
+};
 
 } //namespace vagra
+
+#endif // VARGA_AUTH_H

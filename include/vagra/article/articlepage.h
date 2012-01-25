@@ -35,7 +35,7 @@
 namespace vagra
 {
 
-class ArtPage: public Page<CachedArticle>
+class ArtPage: public Page
 {
     public:
 	ArtPage(const std::vector<unsigned int>&, unsigned int, unsigned int = 0);

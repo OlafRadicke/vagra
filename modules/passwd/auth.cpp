@@ -26,21 +26,27 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef VARGA_USERPAGE_H
-#define VARGA_USERPAGE_H
+#include <stdexcept>
+#include <libintl.h>
 
-#include <vagra/page.h>
-#include <vagra/user/cacheduser.h>
+#include <vagra/passwd/auth.h>
+#include <vagra/passwd/passwd.h>
 
 namespace vagra
 {
 
-class UserPage: public Page<CachedUser>
+//begin Auth
+
+Auth::Auth(const unsigned int _uid, const std::string& passwd)
+	: uid(0)
 {
-    public:
-	UserPage(const std::vector<unsigned int>&, unsigned int, unsigned int = 0);
-};
+	Passwd pass(_uid);
+	if(pass.verify(passwd))
+		uid = _uid;
+	else
+		throw std::domain_error(gettext("password verification faild"));
+}
+
+// end Auth
 
 } //namespace vagra
-
-#endif // VARGA_USERPAGE_H

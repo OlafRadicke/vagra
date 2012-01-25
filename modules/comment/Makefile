@@ -2,7 +2,7 @@ include ../../Makefile.inc
 
 CXXFLAGS  = -I../../include $(VAGRA_CXXFLAGS)
 
-all: cachedcommet.o comment.o commentpage.o
+all: cachedcommet.o comment.o
 	cp *.o ../../
 
 clean:
