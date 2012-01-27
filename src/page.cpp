@@ -26,9 +26,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <libintl.h>
-#include <stdexcept>
-
 #include <vagra/nexus.h>
 #include <vagra/page.h>
 
@@ -43,17 +40,17 @@ void Page::Init(const std::vector<unsigned int>& cont_ids, const unsigned int ar
 	if(page == 0)
 		page = 1;
 
-	unsigned int last_cont = amount * page;
-	unsigned int first_cont = last_cont - amount;
-
 	if(amount == 0)
 	{
 		Nexus& nx = Nexus::getInstance();
 		amount = nx.getConfig("page_size", nx.getPageSize());
 		if(amount == 0)
-			throw std::domain_error(gettext("PageSize zero"));
+			amount = 10;
 	}
 		
+	unsigned int last_cont = amount * page;
+	unsigned int first_cont = last_cont - amount;
+
 	last = cont_ids.size() / amount;
 	if(cont_ids.size() % amount)
 		last++;
@@ -62,15 +59,8 @@ void Page::Init(const std::vector<unsigned int>& cont_ids, const unsigned int ar
 		last_cont = cont_ids.size();
 	if(last_cont > first_cont)
 	{
-		std::vector<unsigned int> inv;
-		inv.resize(last_cont - first_cont);
-		std::copy(cont_ids.begin()+first_cont, cont_ids.begin()+last_cont, inv.begin());
-
-		for (std::vector<unsigned int>::const_iterator it = inv.begin();
-			it != inv.end(); it++)
-		{
-			cont.push_back(*it);
-                }
+		cont.resize(last_cont - first_cont);
+		std::copy(cont_ids.begin()+first_cont, cont_ids.begin()+last_cont, cont.begin());
 	}
 }
 
