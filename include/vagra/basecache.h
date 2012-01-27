@@ -136,7 +136,7 @@ class BaseCache : private cxxtools::NonCopyable
 		}
 		if(!obj)
 			throw std::domain_error(gettext("failed to read any object"));
-		if(obj->getAuthLevel(_aid) < obj->getReadLevel())
+		if(_aid != 1 && obj->getAuthLevel(_aid) < obj->getReadLevel()) //FIXME asumme 1 as admin
 			throw std::domain_error(gettext("insufficient privileges"));
 
 		return obj;

@@ -28,6 +28,7 @@
 
 #include <stdexcept>
 #include <libintl.h>
+#include <algorithm>
 
 #include <tntdb/result.h>
 #include <tntdb/row.h>

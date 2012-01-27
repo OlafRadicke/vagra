@@ -26,48 +26,28 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef VARGA_CACHE_H
-#define VARGA_CACHE_H
+#ifndef VARGA_CACHEDCONTEXT_H
+#define VARGA_CACHEDCONTEXT_H
 
-#include <vagra/basecache.h>
+#include <vagra/cache.h>
+#include <vagra/context.h>
 
 namespace vagra
 {
 
-/* Cache for vagra objects.
- *  - Objects need a constructor that takes two unsigned int as parameter
- *  - First parameter is the ObjectId, second referes to an AuthId
- *  - Objects need a valid bool() operator
- *  - If 0 is given as first costructor parameter, it shall generate an special object,
- *    that acts as replacement for Object that's bool operator return false
- */
-
-
-template <typename Object>
-class Cache : public BaseCache<Object>
+class CachedContext
 {
-    public:
-	static Cache& getInstance()
-	{
-		static Cache* volatile instance = NULL;
-		static cxxtools::Mutex inst_mutex;
+	CachedContext() {}
+	Cache<Context>::SharedObject ctx;
 
-		cxxtools::membar_read();
-		if(!instance)
-		{
-			cxxtools::MutexLock lock(inst_mutex);
-			cxxtools::membar_read();
-			if(!instance)
-			{
-				Cache* _tmp = new Cache();
-				cxxtools::membar_write();
-				instance = _tmp;
-			}
-		}
-		return *instance;
-	}
+    public:
+	explicit CachedContext(const unsigned int, const unsigned int = 0);
+	operator bool() const;
+
+	const Cache<Context>::SharedObject& operator->() const { return ctx; }
+	Context operator*() const { return *ctx; }
 };
 
 } //namespace vagra
 
-#endif // VARGA_CACHE_H
+#endif // VARGA_CACHEDCONTEXT_H

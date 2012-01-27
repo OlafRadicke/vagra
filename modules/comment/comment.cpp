@@ -187,7 +187,7 @@ void Comment::dbCommit(const unsigned int _aid)
 	catch(const std::exception& er_db)
 	{
 		log_error(er_db.what());
-		throw std::domain_error(gettext("could not update article"));
+		throw std::domain_error(gettext("could not commit comment"));
 	}
 
 	try
