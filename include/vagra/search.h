@@ -42,6 +42,7 @@ class Search
 {
     protected:
 	std::string search_string;
+	std::string search_key;
 	std::vector<unsigned int> results;
 	
 	std::string table;
@@ -54,6 +55,9 @@ class Search
 
 	virtual void dbSearch();
 	virtual void genSearchString();
+
+	//utilized by CachedSearch template
+	virtual void genSearchKey();
     public:
 	Search() :
 		order_col("id"),

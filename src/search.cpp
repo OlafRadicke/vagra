@@ -29,6 +29,7 @@
 #include <libintl.h>
 #include <stdexcept>
 #include <algorithm>
+#include <sstream>
 
 #include <cxxtools/log.h>
 #include <cxxtools/loginit.h>
@@ -119,6 +120,16 @@ void Search::genSearchString()
 		search_string += " DESC";
 	if(limit)
 		search_string += " LIMIT :Qlimit";
+}
+
+void Search::genSearchKey()
+{
+	if(search_string.empty())
+		genSearchString();
+
+	std::ostringstream ostr;
+	ostr << cid << oid << limit << read_level << search_string;
+	search_key = ostr.str();
 }
 
 void Search::dbSearch()

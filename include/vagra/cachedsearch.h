@@ -30,7 +30,6 @@
 #define VARGA_CACHEDSEARCH_H
 
 #include <string>
-#include <sstream>
 
 #include <vagra/search.h>
 #include <vagra/resultcache.h>
@@ -41,43 +40,22 @@ namespace vagra
 template <typename Object, class SearchImpl = Search>
 class CachedSearch : public SearchImpl
 {
-	std::string search_key;
-
-	void genSearchKey()
+	const std::vector<unsigned int>& cacheSearch()
 	{
 		if(SearchImpl::table.empty())
 			SearchImpl::table = Object().getTable();
-	
-		if(SearchImpl::search_string.empty())
-			SearchImpl::genSearchString();
-
-		std::ostringstream ostr;
-		if(SearchImpl::cid)
-			ostr << SearchImpl::cid;
-		if(SearchImpl::oid)
-			ostr << SearchImpl::oid;
-		if(SearchImpl::limit)
-			ostr << SearchImpl::limit;
-		if(SearchImpl::read_level)
-			ostr << SearchImpl::read_level;
-		ostr << SearchImpl::search_string;
-		search_key = ostr.str();
-	}
-
-	const std::vector<unsigned int>& cacheSearch()
-	{
-		if(search_key.empty())
-			genSearchKey();
+		if(SearchImpl::search_key.empty())
+			SearchImpl::genSearchKey();
 
 		ResultCache<Object>& rc = ResultCache<Object>::getInstance();
-		std::pair<bool, typename ResultCache<Object>::SharedResults> _res(rc.get(search_key));
+		std::pair<bool, typename ResultCache<Object>::SharedResults> _res(rc.get(SearchImpl::search_key));
 
 		if(_res.first)
 			SearchImpl::results = *(_res.second);
 		else
 		{
 			SearchImpl::dbSearch();
-			rc.put(search_key, SearchImpl::results);
+			rc.put(SearchImpl::search_key, SearchImpl::results);
 		}
 	        return SearchImpl::results;
 	}
@@ -93,7 +71,7 @@ class CachedSearch : public SearchImpl
 	/* allow manually set search_key if genSearchKey() is not appropriate */
 	void setSearchKey(const std::string& _key)
 	{
-		search_key = _key;
+		SearchImpl::search_key = _key;
 	}
 };
 
