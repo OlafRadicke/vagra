@@ -38,29 +38,29 @@
 namespace vagra
 {
 
-template <typename Object>
-class CachedSearch : public Search
+template <typename Object, class SearchImpl = Search>
+class CachedSearch : public SearchImpl
 {
 	std::string search_key;
 
 	void genSearchKey()
 	{
-		if(table.empty())
-			table = Object().getTable();
+		if(SearchImpl::table.empty())
+			SearchImpl::table = Object().getTable();
 	
-		if(search_string.empty())
-			genSearchString();
+		if(SearchImpl::search_string.empty())
+			SearchImpl::genSearchString();
 
 		std::ostringstream ostr;
-		if(cid)
-			ostr << cid;
-		if(oid)
-			ostr << oid;
-		if(limit)
-			ostr << limit;
-		if(read_level)
-			ostr << read_level;
-		ostr << search_string;
+		if(SearchImpl::cid)
+			ostr << SearchImpl::cid;
+		if(SearchImpl::oid)
+			ostr << SearchImpl::oid;
+		if(SearchImpl::limit)
+			ostr << SearchImpl::limit;
+		if(SearchImpl::read_level)
+			ostr << SearchImpl::read_level;
+		ostr << SearchImpl::search_string;
 		search_key = ostr.str();
 	}
 
@@ -73,21 +73,21 @@ class CachedSearch : public Search
 		std::pair<bool, typename ResultCache<Object>::SharedResults> _res(rc.get(search_key));
 
 		if(_res.first)
-			results = *(_res.second);
+			SearchImpl::results = *(_res.second);
 		else
 		{
-			dbSearch();
-			rc.put(search_key, results);
+			SearchImpl::dbSearch();
+			rc.put(search_key, SearchImpl::results);
 		}
-	        return results;
+	        return SearchImpl::results;
 	}
 
     public:
 	const std::vector<unsigned int>& getResults()
 	{
-		if(results.empty())
+		if(SearchImpl::results.empty())
 			cacheSearch();
-		return results;
+		return SearchImpl::results;
 	}
 
 	/* allow manually set search_key if genSearchKey() is not appropriate */
