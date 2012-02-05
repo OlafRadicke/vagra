@@ -36,8 +36,7 @@
 #include <tntdb/result.h>
 #include <tntdb/row.h>
 
-#include <vagra/context.h>
-#include <vagra/cache.h>
+#include <vagra/contextcache.h>
 #include <vagra/nexus.h>
 
 namespace vagra
@@ -46,6 +45,11 @@ namespace vagra
 log_define("vagra")
 
 //begin Context
+
+Context::Context(const std::string& _name, const unsigned int _aid)
+{
+	*this = Context(cachedGetContextIdByName(_name));
+}
 
 Context::Context(const unsigned int _id, const unsigned int _aid)
 	: id(0), read_level(126), add_level(126), write_level(126)
@@ -128,6 +132,9 @@ void Context::dbCommit(const unsigned int _aid)
 
 		tntdb::Transaction trans_ctx(conn);
 
+		if(id != getContextIdByName(name))
+			throw std::domain_error(gettext("name already used by other context"));
+
 		if(id) // id!=null, update. otherwise insert
 		{
 			conn.prepare("UPDATE context SET name = :Iname,"
@@ -197,7 +204,7 @@ void Context::dbCommit(const unsigned int _aid)
 				.execute();
 		}
 
-		Cache<Context>& ctx_cache = Cache<Context>::getInstance();
+		ContextCache& ctx_cache = ContextCache::getInstance();
 		trans_ctx.commit();
 		ctx_cache.clear(id);
 	}
@@ -211,6 +218,16 @@ void Context::dbCommit(const unsigned int _aid)
 Context::operator bool() const
 {
 	return !name.empty();
+}
+
+Context::operator int() const
+{
+	return(id);
+}
+
+Context::operator unsigned int() const
+{
+	return(id);
 }
 
 const std::string& Context::getName() const
@@ -341,5 +358,38 @@ void Context::removeAdmin(const unsigned int _uid, const unsigned int _aid)
 }
 
 //end Context
+
+unsigned int getContextIdByName(const std::string& _name)
+{
+        try
+        {
+                Nexus& nx = Nexus::getInstance();
+                dbconn conn = nx.dbConnection();
+                return getContextIdByName(_name, conn);
+        }
+        catch(const std::exception& er_db)
+        {
+                log_error(er_db.what());
+        }
+        return 0;
+}
+
+unsigned int getContextIdByName(const std::string& _name, dbconn& conn)
+{
+        try
+        {
+                tntdb::Statement q_ctx_id = conn.prepare(
+                        "SELECT id FROM context WHERE name = :Qname");
+                q_ctx_id.setString("Qname", _name);
+                tntdb::Row row_ctx_id = q_ctx_id.selectRow();
+                if(!row_ctx_id.empty() && !row_ctx_id[0].isNull())
+			return row_ctx_id[0].getUnsigned();
+        }
+        catch(const std::exception& er_ctx)
+        {
+                log_warn(er_ctx.what());
+        }
+        return 0;
+}
 
 } //namespace vagra

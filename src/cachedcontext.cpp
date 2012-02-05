@@ -31,9 +31,15 @@
 namespace vagra
 {
 
+CachedContext::CachedContext(const std::string _name, const unsigned int _aid)
+{
+	ContextCache& ctx_cache = ContextCache::getInstance();
+	ctx = ctx_cache.get(cachedGetContextIdByName(_name), 1); //FIXME assume admin as 1
+}
+
 CachedContext::CachedContext(const unsigned int _id, const unsigned int _aid)
 {
-	Cache<Context>& ctx_cache = Cache<Context>::getInstance();
+	ContextCache& ctx_cache = ContextCache::getInstance();
 	ctx = ctx_cache.get(_id, 1); //FIXME assume admin as 1
 }
 

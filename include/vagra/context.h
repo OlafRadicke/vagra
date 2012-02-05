@@ -58,8 +58,13 @@ class Context
 		add_level(126),
 		write_level(126) {}
 
+	Context(const std::string&, const unsigned int = 0);
 	Context(const unsigned int, const unsigned int = 0);
+
 	operator bool() const;
+	operator int() const;
+	operator unsigned int() const;
+	Context* operator->() { return this; }
 
 	const std::string& getName() const;
 	const unsigned int getId() const;
@@ -83,6 +88,9 @@ class Context
 	void dbCommit(const unsigned int = 0);
 };
 
+unsigned int getContextIdByName(const std::string&);
+unsigned int getContextIdByName(const std::string& _name, dbconn&);
+
 } //namespace vagra
 
-#endif // VAGRA_VARGA_CONTEXT_H
+#endif // VARGA_CONTEXT_H

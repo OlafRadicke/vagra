@@ -26,28 +26,60 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef VARGA_CACHEDCONTEXT_H
-#define VARGA_CACHEDCONTEXT_H
+#ifndef VARGA_SEARCH_H
+#define VARGA_SEARCH_H
 
-#include <vagra/contextcache.h>
+#include <string>
+#include <vector>
+
+#include <vagra/baseobject.h>
+#include <vagra/cachedcontext.h>
 
 namespace vagra
 {
 
-class CachedContext
+class Search
 {
-	CachedContext() {}
-	SharedContext ctx;
+    protected:
+	std::string search_string;
+	std::vector<unsigned int> results;
+	
+	std::string table;
+	std::string order_col;
+	bool order_asc;
+	unsigned int limit;
+	unsigned int read_level;
+	unsigned int cid;
+	unsigned int oid;
 
+	virtual void dbSearch();
+	virtual void genSearchString();
     public:
-	explicit CachedContext(const std::string, const unsigned int = 0);
-	explicit CachedContext(const unsigned int, const unsigned int = 0);
-	operator bool() const;
+	Search() :
+		order_col("id"),
+		order_asc(true),
+		limit(0),
+		read_level(0),
+		cid(0), oid(0) {}
+	virtual ~Search() {}
 
-	const SharedContext& operator->() const { return ctx; }
-	Context operator*() const { return *ctx; }
+	/* use either setType(obj()) with noncached objects derivated from
+	 * BaseObject to set the table to search on, OR use setTable("table") */
+	void setType(const BaseObject&);
+	void setTable(const std::string&);
+
+	void setOrderColumn(const std::string&);
+	void setOrderAsc(const bool);
+	void setOwner(const unsigned int);
+	void setContext(const unsigned int);
+	void setContext(const std::string&);
+	void setContext(const CachedContext&);
+	void setReadLevel(const unsigned int);
+	void setLimit(const unsigned int);
+
+	const std::vector<unsigned int>& getResults();
 };
 
 } //namespace vagra
 
-#endif // VARGA_CACHEDCONTEXT_H
+#endif // VARGA_SEARCH_H

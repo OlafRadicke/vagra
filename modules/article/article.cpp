@@ -273,10 +273,11 @@ void Article::dbCommit(const unsigned int _aid)
 	Nexus& nx = Nexus::getInstance();
 	dbconn conn = nx.dbConnection();
 
-	if(id != 0 && id != getArticleIdByTitle(title, conn))
+	tntdb::Transaction trans_art(conn);
+
+	if(id != getArticleIdByTitle(title, conn))
 		throw std::domain_error(gettext("article already exist"));
 
-	tntdb::Transaction trans_art(conn);
 	try
 	{
 		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
@@ -352,7 +353,7 @@ unsigned int getArticleIdByTitle(const std::string& title)
 }
 
 /* need this versions of getArticleIdByTitle, because the art_id must be visible 
- * during transaction in Article::dbInsert().
+ * during transaction in Article::dbCommit().
  */
 unsigned int getArticleIdByTitle(const std::string& title, dbconn& conn)
 {

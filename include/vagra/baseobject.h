@@ -89,6 +89,7 @@ class BaseObject
 	const unsigned char getReadLevel() const;
 	const unsigned char getAddLevel() const;
 	const unsigned char getWriteLevel() const;
+	const std::string& getTable() const; //used by Search.setType()
 	const unsigned char getAuthLevel(const unsigned int = 0) const;
 
 	const vdate& getCTime() const;
@@ -98,6 +99,9 @@ class BaseObject
 	 * and also sets the owner to AuthId. Remember that dbCommit might
 	 * become impossible if you set the owner != AuthId */
 	void setContext(const CachedContext&, const unsigned int = 0);
+	void setContext(const std::string&, const unsigned int = 0);
+	void setContext(const unsigned int, const unsigned int = 0);
+
 	void setOwner(const unsigned int, const unsigned int = 0);
 	void setReadLevel(const unsigned char, const unsigned int = 0);
 	void setAddLevel(const unsigned char, const unsigned int = 0);

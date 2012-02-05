@@ -43,6 +43,7 @@
 
 #include <vagra/types.h>
 #include <vagra/nexus.h>
+#include <vagra/resultcache.h>
 
 namespace vagra
 {
@@ -64,8 +65,10 @@ class BaseCache : private cxxtools::NonCopyable
 	log_define("vagra")
 
     protected:
+	ResultCache<Object>& result_cache;
 	BaseCache()
-		: cache_inst(this->getCacheSize()) {}
+       		: result_cache(ResultCache<Object>::getInstance()),
+		  cache_inst(this->getCacheSize()) {}
 
     private:
 	virtual unsigned int getCacheSize()
@@ -146,6 +149,7 @@ class BaseCache : private cxxtools::NonCopyable
 	{
 		cxxtools::MutexLock lock(mutex);
 		cache_inst.erase(id);
+		result_cache.clear();
 	}
 
 };

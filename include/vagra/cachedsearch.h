@@ -26,28 +26,77 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef VARGA_CACHEDCONTEXT_H
-#define VARGA_CACHEDCONTEXT_H
+#ifndef VARGA_CACHEDSEARCH_H
+#define VARGA_CACHEDSEARCH_H
 
-#include <vagra/contextcache.h>
+#include <string>
+#include <sstream>
+
+#include <vagra/search.h>
+#include <vagra/resultcache.h>
 
 namespace vagra
 {
 
-class CachedContext
+template <typename Object>
+class CachedSearch : public Search
 {
-	CachedContext() {}
-	SharedContext ctx;
+	std::string search_key;
+
+	void genSearchKey()
+	{
+		if(table.empty())
+			table = Object().getTable();
+	
+		if(search_string.empty())
+			genSearchString();
+
+		std::ostringstream ostr;
+		if(cid)
+			ostr << cid;
+		if(oid)
+			ostr << oid;
+		if(limit)
+			ostr << limit;
+		if(read_level)
+			ostr << read_level;
+		ostr << search_string;
+		search_key = ostr.str();
+	}
+
+	const std::vector<unsigned int>& cacheSearch()
+	{
+		if(search_key.empty())
+			genSearchKey();
+
+		ResultCache<Object>& rc = ResultCache<Object>::getInstance();
+		std::pair<bool, typename ResultCache<Object>::SharedResults> _res(rc.get(search_key));
+
+		if(_res.first)
+			results = *(_res.second);
+		else
+		{
+			dbSearch();
+			rc.put(search_key, results);
+		}
+	        return results;
+	}
 
     public:
-	explicit CachedContext(const std::string, const unsigned int = 0);
-	explicit CachedContext(const unsigned int, const unsigned int = 0);
-	operator bool() const;
+	const std::vector<unsigned int>& getResults()
+	{
+		if(results.empty())
+			cacheSearch();
+		return results;
+	}
 
-	const SharedContext& operator->() const { return ctx; }
-	Context operator*() const { return *ctx; }
+	/* allow manually set search_key if genSearchKey() is not appropriate */
+	void setSearchKey(const std::string& _key)
+	{
+		search_key = _key;
+	}
 };
 
 } //namespace vagra
 
-#endif // VARGA_CACHEDCONTEXT_H
+#endif // VARGA_CACHEDSEARCH_H

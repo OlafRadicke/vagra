@@ -179,6 +179,11 @@ const vdate& BaseObject::getMTime() const
 	return mtime;
 }
 
+const std::string& BaseObject::getTable() const
+{
+	return tablename;
+}
+
 const unsigned char BaseObject::getAuthLevel(const unsigned int _aid) const
 {
         unsigned char _auth_level(2);
@@ -216,6 +221,18 @@ void BaseObject::setContext(const CachedContext& _ctx, const unsigned int _aid)
 	read_level = ctx->getReadLevel();
 	add_level = ctx->getAddLevel();
 	write_level = ctx->getWriteLevel();
+}
+
+void BaseObject::setContext(const std::string& _name, const unsigned int _aid)
+{
+	CachedContext _ctx(_name);
+	setContext(_ctx, _aid);
+}
+
+void BaseObject::setContext(const unsigned int _cid, const unsigned int _aid)
+{
+	CachedContext _ctx(_cid);
+	setContext(_ctx, _aid);
 }
 
 void BaseObject::setOwner(const unsigned int _oid, const unsigned int _aid)
