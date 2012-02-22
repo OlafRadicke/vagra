@@ -91,8 +91,6 @@ unsigned int cachedGetArticleIdByTitle(const std::string&);
 tsum getTagsum();
 ArticleCache::size_type getArticleAmount();
 
-std::vector<unsigned int> searchArtByTag(const std::string&);
-
 vdate updated();
 
 } //namespace vagra

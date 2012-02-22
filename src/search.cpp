@@ -80,17 +80,23 @@ void Search::setOwner(const unsigned int _oid)
 
 void Search::setContext(const unsigned int _cid)
 {
+	if(!_cid)
+		throw std::domain_error(gettext("can't search for context 0"));
 	cid = _cid;
 }
 
 void Search::setContext(const std::string& _ctxname)
 {
 	cid = CachedContext(_ctxname)->getId();
+	if(!cid)
+		throw std::domain_error(gettext("can't search for context 0"));
 }
 
 void Search::setContext(const CachedContext& _ctx)
 {
 	cid = _ctx->getId();
+	if(!cid)
+		throw std::domain_error(gettext("can't search for context 0"));
 }
 
 void Search::setReadLevel(const unsigned int _lev)

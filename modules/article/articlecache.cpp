@@ -33,15 +33,12 @@
 #include <tntdb/result.h>
 #include <tntdb/row.h>
 #include <cxxtools/log.h>
-#include <cxxtools/loginit.h>
 
 #include <vagra/nexus.h>
 #include <vagra/article/articlecache.h>
 
 namespace vagra
 {
-
-log_define("vagra")
 
 //begin ArticleCache
 
@@ -247,37 +244,6 @@ ArticleCache::size_type getArticleAmount()
 {
         ArticleCache& art_cache = ArticleCache::getInstance();
         return art_cache.invSize();
-}
-
-std::vector<unsigned int> searchArtByTag(const std::string& s)
-{
-        std::vector<unsigned int> art_ids;
-        if(s.empty())
-                return art_ids;
-
-        try
-        {
-                Nexus& nx = Nexus::getInstance();
-                dbconn conn = nx.dbConnection();
-                tntdb::Statement q_art_tags = conn.prepare(
-                        "SELECT art_id FROM tags WHERE tag = :Qtag ORDER BY art_id ASC");
-                q_art_tags.setString("Qtag", s);
-                tntdb::Result res_art_tags = q_art_tags.select();
-                for(tntdb::Result::const_iterator it = res_art_tags.begin();
-                        it != res_art_tags.end(); ++it)
-                {
-                        tntdb::Row row_art_tags = *it;
-                        if(row_art_tags[0].isNull())
-                                throw std::domain_error(gettext("got tag with no art_id"));
-                        art_ids.push_back(row_art_tags[0].getUnsigned());
-                }
-        }
-        catch(const std::exception& er_db)
-        {
-                log_error(er_db.what());
-                throw std::domain_error(gettext("could not read art_id from tags"));
-        }
-        return art_ids;
 }
 
 vdate updated()
