@@ -35,7 +35,7 @@
 #include <tntdb/transaction.h>
 #include <tntdb/row.h>
 
-#include <vagra/helpers.h>
+#include <vagra/utils.h>
 #include <vagra/nexus.h>
 
 #include <vagra/article/article.h>
@@ -325,7 +325,6 @@ void Article::dbCommit(const unsigned int _aid)
 		trans_art.commit();
 		art_cache.clear(id);
 		art_cache.updateTagsum();
-		art_cache.invAdd(id);
 		art_cache.updateMTime();
 	}
 	catch(const std::exception& er_trans)

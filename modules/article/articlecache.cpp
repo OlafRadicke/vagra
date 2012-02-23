@@ -44,7 +44,6 @@ namespace vagra
 
 ArticleCache::ArticleCache()
 {
-	initInv();
 	updateTagsum();
 	updateMTime();
 }
@@ -98,65 +97,10 @@ unsigned int ArticleCache::getIdByTitle(const std::string& art_title)
         return 0;
 }
 
-void ArticleCache::initInv()
-{
-        cxxtools::WriteLock wlock(id_inv_mutex);
-        try
-        {
-                Nexus& nx = Nexus::getInstance();
-                dbconn conn = nx.dbConnection();
-                tntdb::Statement q_art_ids = conn.prepare(
-                        "SELECT id FROM articles WHERE id > 0 ORDER BY id ASC");
-                tntdb::Result res_art_ids = q_art_ids.select();
-                for(tntdb::Result::const_iterator it = res_art_ids.begin();
-                                it != res_art_ids.end(); it++)
-                {
-                        tntdb::Row row_art_id = *it;
-                        if(row_art_id[0].isNull())
-                                throw std::domain_error(gettext("got NULL ID"));
-                        inventory.push_back(row_art_id[0].getUnsigned());
-                }
-        }
-        catch(const std::exception& er_comm)
-        {
-                log_error(er_comm.what());
-        }
-}
-
-std::vector<unsigned int> ArticleCache::getInv()
-{
-        cxxtools::ReadLock rlock(id_inv_mutex);
-        return std::vector<unsigned int> (inventory.rbegin(), inventory.rend());
-}
-
-std::vector<unsigned int> ArticleCache::getInv(unsigned int first, unsigned int last)
-{
-        cxxtools::ReadLock rlock(id_inv_mutex);
-
-        if(first > last || last > inventory.size())
-                throw std::domain_error(gettext("out of range"));
-        if(inventory.empty())
-                throw std::domain_error(gettext("inventory is empty"));
-
-        return std::vector<unsigned int> (inventory.rbegin()+first, inventory.rend()+last);
-}
-
 tsum ArticleCache::getTagsum()
 {
         cxxtools::ReadLock rlock(tsum_mutex);
         return tagsum;
-}
-
-ArticleCache::size_type ArticleCache::invSize() const
-{
-        return inventory.size();
-}
-
-void ArticleCache::invAdd(unsigned int _id)
-{
-        cxxtools::WriteLock wlock(id_inv_mutex);
-        if(!std::binary_search(inventory.begin(), inventory.end(), _id))
-                inventory.push_back(_id);
 }
 
 void ArticleCache::updateMTime()
@@ -185,15 +129,6 @@ vdate ArticleCache::getMTime()
 {
         cxxtools::ReadLock rlock(mtime_mutex);
         return mtime;
-}
-
-void ArticleCache::invRemove(unsigned int _id)
-{
-        cxxtools::WriteLock wlock(id_inv_mutex);
-        std::vector<unsigned int>::iterator it =
-                std::find(inventory.begin(), inventory.end(), _id);
-        if(it != inventory.end())
-                inventory.erase(it);
 }
 
 void ArticleCache::updateTagsum()
@@ -238,12 +173,6 @@ tsum getTagsum()
 {
         ArticleCache& art_cache = ArticleCache::getInstance();
         return art_cache.getTagsum();
-}
-
-ArticleCache::size_type getArticleAmount()
-{
-        ArticleCache& art_cache = ArticleCache::getInstance();
-        return art_cache.invSize();
 }
 
 vdate updated()

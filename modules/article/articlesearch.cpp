@@ -32,7 +32,7 @@
 #include <sstream>
 
 #include <vagra/article/articlesearch.h>
-#include <vagra/helpers.h>
+#include <vagra/utils.h>
 
 namespace vagra
 {

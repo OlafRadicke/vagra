@@ -56,31 +56,20 @@ class ArticleCache: public BaseCache<Article>
         }
 
         std::map<std::string, unsigned int> id_map;
-        std::vector<unsigned int> inventory;
 	tsum tagsum;
 	vdate mtime;
 
         cxxtools::ReadWriteMutex id_map_mutex;
 	cxxtools::ReadWriteMutex tsum_mutex;
-        cxxtools::ReadWriteMutex id_inv_mutex;
 	cxxtools::ReadWriteMutex mtime_mutex;
 
-	void initInv();
-
     public:
-	typedef std::vector<unsigned int>::size_type size_type;
-
         static ArticleCache& getInstance();
         unsigned int getIdByTitle(const std::string&);
 
-	std::vector<unsigned int> getInv();
-	std::vector<unsigned int> getInv(unsigned int, unsigned int);
-	size_type invSize() const;
 	tsum getTagsum();
 	vdate getMTime();
 
-	void invAdd(unsigned int);
-	void invRemove(unsigned int);
 	void updateTagsum();
 	void updateMTime();
 };
@@ -89,7 +78,6 @@ typedef ArticleCache::SharedObject SharedArticle;
 
 unsigned int cachedGetArticleIdByTitle(const std::string&);
 tsum getTagsum();
-ArticleCache::size_type getArticleAmount();
 
 vdate updated();
 

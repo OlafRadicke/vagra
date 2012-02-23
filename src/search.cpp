@@ -37,7 +37,7 @@
 #include <tntdb/row.h>
 
 #include <vagra/search.h>
-#include <vagra/helpers.h>
+#include <vagra/utils.h>
 #include <vagra/nexus.h>
 
 namespace vagra
