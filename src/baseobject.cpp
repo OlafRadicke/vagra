@@ -204,7 +204,7 @@ void BaseObject::setContext(const CachedContext& _ctx, const unsigned int _aid)
 	if(!id) //new object if false
 	{
 		if(_ctx->getAuthLevel(_aid) < _ctx->getAddLevel()
-			&& _ctx->getAddLevel() > 2)
+			&& _ctx->getAddLevel() > 2 && _aid != 1) //FIXME assume 1 as admin
 			throw std::domain_error(gettext("insufficient privileges on target context"));
 	}
 	else 
@@ -213,7 +213,7 @@ void BaseObject::setContext(const CachedContext& _ctx, const unsigned int _aid)
 			throw std::domain_error(gettext("insufficient privileges"));
 
 		if(_ctx->getAuthLevel(_aid) < _ctx->getAddLevel()
-			&& _ctx->getAddLevel() > 2)
+			&& _ctx->getAddLevel() > 2 && _aid != 1) //FIXME assume 1 as admin
 			throw std::domain_error(gettext("insufficient privileges on target context"));
 	}
 	ctx = _ctx;
