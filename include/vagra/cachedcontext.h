@@ -29,7 +29,8 @@
 #ifndef VARGA_CACHEDCONTEXT_H
 #define VARGA_CACHEDCONTEXT_H
 
-#include <vagra/contextcache.h>
+#include <vagra/context.h>
+#include <vagra/cache.h>
 
 namespace vagra
 {
@@ -37,14 +38,14 @@ namespace vagra
 class CachedContext
 {
 	CachedContext() {}
-	SharedContext ctx;
+	Cache<Context>::SharedObject ctx;
 
     public:
-	explicit CachedContext(const std::string, const unsigned int = 0);
 	explicit CachedContext(const unsigned int, const unsigned int = 0);
+	explicit CachedContext(const std::string, const unsigned int = 0);
 	operator bool() const;
 
-	const SharedContext& operator->() const { return ctx; }
+	const Cache<Context>::SharedObject& operator->() const { return ctx; }
 	Context operator*() const { return *ctx; }
 };
 

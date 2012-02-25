@@ -26,74 +26,87 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifndef VARGA_IDMAP_H
+#define VARGA_IDMAP_H
+
+#include <string>
 #include <stdexcept>
 #include <libintl.h>
 
+#include <cxxtools/noncopyable.h>
+#include <cxxtools/mutex.h>
 #include <cxxtools/log.h>
 #include <cxxtools/loginit.h>
+#include <cxxtools/membar.h>
 
-#include <vagra/contextcache.h>
+#include <vagra/resultcache.h>
 
 namespace vagra
 {
 
-//begin ContextCache
-
-ContextCache& ContextCache::getInstance()
+template <typename Object>
+class IdMap : private cxxtools::NonCopyable
 {
-	static ContextCache* volatile instance = NULL;
-	static cxxtools::Mutex inst_mutex;
+	std::map<std::string, unsigned int> id_map;
+	cxxtools::ReadWriteMutex id_map_mutex;
 
-	cxxtools::membar_read();
-	if(!instance)
+	IdMap() {}
+
+    public:
+	log_define("vagra")
+
+	static IdMap& getInstance()
 	{
-		cxxtools::MutexLock lock(inst_mutex);
+		static IdMap* volatile instance = NULL;
+		static cxxtools::Mutex inst_mutex;
+
 		cxxtools::membar_read();
 		if(!instance)
 		{
-			ContextCache* _tmp = new ContextCache();
-			cxxtools::membar_write();
-			instance = _tmp;
+			cxxtools::MutexLock lock(inst_mutex);
+			cxxtools::membar_read();
+			if(!instance)
+			{
+				IdMap* _tmp = new IdMap();
+				cxxtools::membar_write();
+				instance = _tmp;
+			}
 		}
+		return *instance;
 	}
-	return *instance;
-}
 
-unsigned int ContextCache::getIdByName(const std::string& _name)
-{
-        cxxtools::ReadLock rlock(id_map_mutex);
-        std::map<std::string, unsigned int>::iterator it = id_map.find(_name);
-        if(it == id_map.end())
-        {
-                rlock.unlock();
-                try
-                {
-                        unsigned int _id = getContextIdByName(_name);
-                        if(_id)
-                        {
-                                cxxtools::WriteLock wlock(id_map_mutex);
-                                id_map.insert(std::pair<std::string,unsigned int>(_name, _id));
-                        }
-                        return _id;
-                }
-                catch(const std::exception& er_db)
-                {
-			log_error(er_db.what());
-                }
-        }
-        else
-        {
-                return(*it).second;
-        }
-        return 0;
-}
+	unsigned int getIdByName(const std::string& _name)
+	{
+		cxxtools::ReadLock rlock(id_map_mutex);
+		std::map<std::string, unsigned int>::iterator it = id_map.find(_name);
 
-//end ContextCache
+		if(it == id_map.end())
+		{
+			rlock.unlock();
+			try
+			{
+				unsigned int _id = Object::getIdByName(_name);
+				if(_id)
+				{
+					cxxtools::WriteLock wlock(id_map_mutex);
+					id_map.insert(std::pair<std::string,unsigned int>(_name, _id));
+				}
+				return _id;
+			}
+			catch(const std::exception& er_idmap)
+			{
+				log_error(er_idmap.what());
+			}
+		}
+		else
+		{
+			return(*it).second;
+		}
+		return 0;
+	}
 
-unsigned int cachedGetContextIdByName(const std::string& _name)
-{
-	ContextCache& ctx_cache = ContextCache::getInstance();
-	return ctx_cache.getIdByName(_name);
-}
+};
 
 } //namespace vagra
+
+#endif // VARGA_IDMAP_H

@@ -50,6 +50,17 @@ log_define("vagra")
 User::User(const unsigned int _id, const unsigned _aid)
 	: BaseObject("vuser", _id,_aid) //call baseconstructor(db_tablename,id,authId)
 {
+	Init();
+}
+
+User::User(const std::string& _name, const unsigned _aid)
+	: BaseObject("vuser", getIdByName(_name), _aid)
+{
+	Init();
+}
+
+void User::Init()
+{
 	try
 	{
 		Nexus& nx = Nexus::getInstance();
@@ -223,6 +234,11 @@ void User::dbCommit(const unsigned int _aid)
 		log_error(er_trans.what());
 		throw std::domain_error(gettext("commit failed"));
 	}
+}
+
+unsigned int User::getIdByName(const std::string& _name)
+{
+	return getUidByLogname(_name);
 }
 
 // end User

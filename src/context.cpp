@@ -36,7 +36,8 @@
 #include <tntdb/result.h>
 #include <tntdb/row.h>
 
-#include <vagra/contextcache.h>
+#include <vagra/context.h>
+#include <vagra/cache.h>
 #include <vagra/nexus.h>
 
 namespace vagra
@@ -48,7 +49,7 @@ log_define("vagra")
 
 Context::Context(const std::string& _name, const unsigned int _aid)
 {
-	*this = Context(cachedGetContextIdByName(_name));
+	*this = Context(getIdByName(_name));
 }
 
 Context::Context(const unsigned int _id, const unsigned int _aid)
@@ -204,7 +205,7 @@ void Context::dbCommit(const unsigned int _aid)
 				.execute();
 		}
 
-		ContextCache& ctx_cache = ContextCache::getInstance();
+		Cache<Context>& ctx_cache = Cache<Context>::getInstance();
 		trans_ctx.commit();
 		ctx_cache.clear(id);
 	}
@@ -355,6 +356,11 @@ void Context::removeAdmin(const unsigned int _uid, const unsigned int _aid)
 	std::vector<unsigned int>::iterator it = std::find(admin.begin(), admin.end(), _uid);
 	if(it != admin.end())
 		admin.erase(it);
+}
+
+unsigned int Context::getIdByName(const std::string& _name)
+{
+	return getContextIdByName(_name);
 }
 
 //end Context

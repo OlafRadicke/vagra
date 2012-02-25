@@ -86,6 +86,8 @@ class Context
 	void removeAdmin(const unsigned int, const unsigned int = 0);
 
 	void dbCommit(const unsigned int = 0);
+
+	static unsigned int getIdByName(const std::string&);
 };
 
 unsigned int getContextIdByName(const std::string&);

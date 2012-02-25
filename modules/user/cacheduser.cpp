@@ -26,6 +26,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <vagra/idmap.h>
 #include <vagra/user/cacheduser.h>
 
 namespace vagra
@@ -35,6 +36,14 @@ CachedUser::CachedUser(const unsigned int _id, const unsigned int _aid)
 {
 	Cache<User>& user_cache = Cache<User>::getInstance();
 	user = user_cache.get(_id,_aid);
+}
+
+CachedUser::CachedUser(const std::string& _name, const unsigned int _aid)
+{
+	Cache<User>& user_cache = Cache<User>::getInstance();
+	IdMap<User>& user_idmap = IdMap<User>::getInstance();
+
+	user = user_cache.get(user_idmap.getIdByName(_name),_aid);
 }
 
 CachedUser::operator bool() const

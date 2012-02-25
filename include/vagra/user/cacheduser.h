@@ -42,6 +42,8 @@ class CachedUser
 
     public:
 	explicit CachedUser(const unsigned int, const unsigned int = 0);
+	explicit CachedUser(const std::string&, const unsigned int = 0);
+
 	operator bool() const;
 	operator int() const;
 	operator unsigned int() const;
