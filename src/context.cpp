@@ -122,7 +122,7 @@ Context::Context(const unsigned int _id, const unsigned int _aid)
 
 void Context::dbCommit(const unsigned int _aid)
 {
-	if(!_aid || (_aid != 1 //FIXME assume admin as 1
+	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw std::domain_error(gettext("insufficient privileges"));
 
@@ -273,7 +273,7 @@ const unsigned char Context::getAuthLevel(const unsigned int _aid) const
 
 void Context::setReadLevel(const unsigned char _lev, const unsigned int _aid)
 {
-	if(!_aid || (_aid != 1 //FIXME assume admin as 1
+	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw std::domain_error(gettext("insufficient privileges"));
 	read_level = _lev;
@@ -281,7 +281,7 @@ void Context::setReadLevel(const unsigned char _lev, const unsigned int _aid)
 
 void Context::setAddLevel(const unsigned char _lev, const unsigned int _aid)
 {
-	if(!_aid || (_aid != 1 //FIXME assume admin as 1
+	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw std::domain_error(gettext("insufficient privileges"));
 	add_level = _lev;
@@ -289,7 +289,7 @@ void Context::setAddLevel(const unsigned char _lev, const unsigned int _aid)
 
 void Context::setWriteLevel(const unsigned char _lev, const unsigned int _aid)
 {
-	if(!_aid || (_aid != 1 //FIXME assume admin as 1
+	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw std::domain_error(gettext("insufficient privileges"));
 	write_level = _lev;
@@ -297,7 +297,7 @@ void Context::setWriteLevel(const unsigned char _lev, const unsigned int _aid)
 
 void Context::addUnprivileged(const unsigned int _uid, const unsigned int _aid)
 {
-	if(!_aid || (_aid != 1 //FIXME assume admin as 1
+	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw std::domain_error(gettext("insufficient privileges"));
 
@@ -307,7 +307,7 @@ void Context::addUnprivileged(const unsigned int _uid, const unsigned int _aid)
 
 void Context::addPrivileged(const unsigned int _uid, const unsigned int _aid)
 {
-	if(!_aid || (_aid != 1 //FIXME assume admin as 1
+	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw std::domain_error(gettext("insufficient privileges"));
 
@@ -317,7 +317,7 @@ void Context::addPrivileged(const unsigned int _uid, const unsigned int _aid)
 
 void Context::addAdmin(const unsigned int _uid, const unsigned int _aid)
 {
-	if(!_aid || (_aid != 1 //FIXME assume admin as 1
+	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw std::domain_error(gettext("insufficient privileges"));
 
@@ -327,7 +327,7 @@ void Context::addAdmin(const unsigned int _uid, const unsigned int _aid)
 
 void Context::removeUnprivileged(const unsigned int _uid, const unsigned int _aid)
 {
-	if(!_aid || (_aid != 1 //FIXME assume admin as 1
+	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw std::domain_error(gettext("insufficient privileges"));
 
@@ -338,7 +338,7 @@ void Context::removeUnprivileged(const unsigned int _uid, const unsigned int _ai
 
 void Context::removePrivileged(const unsigned int _uid, const unsigned int _aid)
 {
-	if(!_aid || (_aid != 1 //FIXME assume admin as 1
+	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw std::domain_error(gettext("insufficient privileges"));
 
@@ -349,7 +349,7 @@ void Context::removePrivileged(const unsigned int _uid, const unsigned int _aid)
 
 void Context::removeAdmin(const unsigned int _uid, const unsigned int _aid)
 {
-	if(!_aid || (_aid != 1 //FIXME assume admin as 1
+	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw std::domain_error(gettext("insufficient privileges"));
 

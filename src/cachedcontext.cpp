@@ -35,7 +35,7 @@ namespace vagra
 CachedContext::CachedContext(const unsigned int _id, const unsigned int _aid)
 {
 	Cache<Context>& ctx_cache = Cache<Context>::getInstance();
-	ctx = ctx_cache.get(_id, 1); //FIXME assume admin as 1
+	ctx = ctx_cache.get(_id, superuser); // Cache reads always as superuser
 }
 
 CachedContext::CachedContext(const std::string _name, const unsigned int _aid)
@@ -43,7 +43,7 @@ CachedContext::CachedContext(const std::string _name, const unsigned int _aid)
 	Cache<Context>& ctx_cache = Cache<Context>::getInstance();
 	IdMap<Context>& ctx_idmap = IdMap<Context>::getInstance();
 
-	ctx = ctx_cache.get(ctx_idmap.getIdByName(_name), 1); //FIXME assume admin as 1
+	ctx = ctx_cache.get(ctx_idmap.getIdByName(_name), superuser);
 }
 
 CachedContext::operator bool() const

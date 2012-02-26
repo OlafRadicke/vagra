@@ -117,7 +117,7 @@ class BaseCache : private cxxtools::NonCopyable
 		{
 			try
 			{
-				SharedObject new_obj( new Object(id,1)); //FIXME assume 1 as admin
+				SharedObject new_obj( new Object(id,superuser)); // cache reads always as superuser
 				if(*new_obj)
 				{
 					cxxtools::MutexLock lock(mutex);
@@ -139,7 +139,7 @@ class BaseCache : private cxxtools::NonCopyable
 		}
 		if(!obj)
 			throw std::domain_error(gettext("failed to read any object"));
-		if(_aid != 1 && obj->getAuthLevel(_aid) < obj->getReadLevel()) //FIXME asumme 1 as admin
+		if(_aid != superuser && obj->getAuthLevel(_aid) < obj->getReadLevel())
 			throw std::domain_error(gettext("insufficient privileges"));
 
 		return obj;

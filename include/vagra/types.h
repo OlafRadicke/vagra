@@ -38,6 +38,8 @@ namespace vagra
 typedef std::vector<unsigned int>::size_type szt_vecint;
 typedef tntdb::Connection dbconn;
 
+const unsigned int superuser = 1000;
+
 } // namespace vagra
 
 #endif // VAGRA_TYPES_H
