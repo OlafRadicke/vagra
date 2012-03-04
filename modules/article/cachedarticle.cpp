@@ -26,11 +26,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdexcept>
-#include <libintl.h>
-#include <cxxtools/log.h>
-#include <cxxtools/loginit.h>
-
+#include <vagra/idmap.h>
 #include <vagra/article/cachedarticle.h>
 
 namespace vagra
@@ -38,14 +34,16 @@ namespace vagra
 
 CachedArticle::CachedArticle(const unsigned int art_id, const unsigned int _aid)
 {
-	ArticleCache& art_cache = ArticleCache::getInstance();
+	Cache<Article>& art_cache = Cache<Article>::getInstance();
 	art = art_cache.get(art_id,_aid);
 }
 
 CachedArticle::CachedArticle(const std::string& art_title, const unsigned int _aid)
 {
-	ArticleCache& art_cache = ArticleCache::getInstance();
-	art = art_cache.get(cachedGetArticleIdByTitle(art_title),_aid);
+	Cache<Article>& art_cache = Cache<Article>::getInstance();
+	IdMap<Article>& article_idmap = IdMap<Article>::getInstance();
+
+	art = art_cache.get(article_idmap.getIdByName(art_title),_aid);
 }
 
 CachedArticle::operator bool() const

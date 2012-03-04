@@ -39,6 +39,7 @@
 #include <cxxtools/membar.h>
 
 #include <vagra/nexus.h>
+#include <vagra/date.h>
 
 namespace vagra
 {
@@ -84,21 +85,34 @@ class ResultCache : private cxxtools::NonCopyable
 
 	void clear()
 	{
+		cxxtools::MutexLock lock(mutex);
 		cache_inst.clear();
+		mtime = vdate::gmtime();
+	}
+
+	vdate getMTime()
+	{
+		cxxtools::MutexLock lock(mutex);
+		return mtime;
 	}
 
     private:
 	cxxtools::Cache<std::string, SharedResults> cache_inst;
 	cxxtools::Mutex mutex;
 
+	vdate mtime;
+
 	ResultCache ()
-		: cache_inst(this->getCacheSize()) {}
+		: cache_inst(this->getCacheSize()),
+       		  mtime(vdate::gmtime()) { }
 
 	unsigned int getCacheSize()
 	{
 		Nexus& nx = Nexus::getInstance();
 		return nx.getCacheSize();
 	}
+
+
 };
 
 } //namespace vagra

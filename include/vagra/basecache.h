@@ -151,7 +151,6 @@ class BaseCache : private cxxtools::NonCopyable
 		cache_inst.erase(id);
 		result_cache.clear();
 	}
-
 };
 
 } //namespace vagra

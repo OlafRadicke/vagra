@@ -11,7 +11,7 @@
  * instantiate templates or use macros or inline functions from this
  * file, or you compile this file and link it with other files to
  * produce an executable, this file does not by itself cause the
- * resulting executable to be covered by the GNU General Public
+ * contenting executable to be covered by the GNU General Public
  * License. This exception does not however invalidate any other
  * reasons why the executable file might be covered by the GNU Library
  * General Public License.
@@ -26,29 +26,40 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef VARGA_CACHEDARTICLE_H
-#define VARGA_CACHEDARTICLE_H
-
-#include <vagra/cache.h>
-#include <vagra/article/article.h>
+#include <vagra/article/tagsumpublic.h>
 
 namespace vagra
 {
 
-class CachedArticle
+//begin ArticleTagsPublicSearch
+ArticleTagsPublicSearch::ArticleTagsPublicSearch()
+	: BaseSearchVPSU("SELECT tag, count(tag) from tags, articles WHERE tags.art_id = articles.id AND"
+			" articles.cid = (SELECT id FROM context WHERE name = 'public') AND"
+		        " articles.read_level <= 2 GROUP by tag ORDER by count DESC;")
+{ }
+
+//end ArticleTagsPublicSearch
+//begin ArticleTagsPublic
+
+ArticleTagsPublic::ArticleTagsPublic()
+	: tagsum(ActiveCache<ArticleTagsPublicSearch>::getResult())
+{ }
+
+ArticleTagsPublic::const_iterator ArticleTagsPublic::begin() const
 {
-	CachedArticle() {}
-	Cache<Article>::SharedObject art;
+	return tagsum->begin();
+}
 
-    public:
-	explicit CachedArticle(const unsigned int, const unsigned int = 0);
-	explicit CachedArticle(const std::string&, const unsigned int = 0);
-	operator bool() const;
+ArticleTagsPublic::const_iterator ArticleTagsPublic::end() const
+{
+	return tagsum->end();
+}
 
-	const Cache<Article>::SharedObject& operator->() const { return art; }
-	Article operator*() const { return *art; }
-};
+void ArticleTagsPublic::updateResult()
+{
+	ActiveCache<ArticleTagsPublicSearch>::updateResult();
+}
+
+//end ArticleTagsPublic
 
 } //namespace vagra
-
-#endif // VARGA_CACHEDARTICLE_H

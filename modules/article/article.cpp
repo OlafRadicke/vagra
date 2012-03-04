@@ -37,9 +37,10 @@
 
 #include <vagra/utils.h>
 #include <vagra/nexus.h>
+#include <vagra/cache.h>
+#include <vagra/idmap.h>
 
 #include <vagra/article/article.h>
-#include <vagra/article/articlecache.h>
 
 namespace vagra
 {
@@ -51,7 +52,7 @@ log_define("vagra")
 Article::Article(const std::string& art_title, const unsigned int _aid)
 	: BaseObject("articles")
 {
-	*this = Article(cachedGetArticleIdByTitle(art_title), _aid);
+	*this = Article(Article::getIdByName(art_title), _aid);
 }
 
 Article::Article(const unsigned int _id, const unsigned int _aid)
@@ -321,17 +322,20 @@ void Article::dbCommit(const unsigned int _aid)
 	}
 	try
 	{
-		ArticleCache& art_cache = ArticleCache::getInstance();
+		Cache<Article>& art_cache = Cache<Article>::getInstance();
 		trans_art.commit();
 		art_cache.clear(id);
-		art_cache.updateTagsum();
-		art_cache.updateMTime();
 	}
 	catch(const std::exception& er_trans)
 	{
 		log_error(er_trans.what());
 		throw std::domain_error(gettext("commit failed"));
 	}
+}
+
+unsigned int Article::getIdByName(const std::string& _name)
+{
+	return getArticleIdByTitle(_name);
 }
 
 //end Article

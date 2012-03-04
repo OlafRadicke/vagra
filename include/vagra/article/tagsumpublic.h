@@ -11,7 +11,7 @@
  * instantiate templates or use macros or inline functions from this
  * file, or you compile this file and link it with other files to
  * produce an executable, this file does not by itself cause the
- * resulting executable to be covered by the GNU General Public
+ * contenting executable to be covered by the GNU General Public
  * License. This exception does not however invalidate any other
  * reasons why the executable file might be covered by the GNU Library
  * General Public License.
@@ -26,61 +26,36 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef VARGA_CACHEDSEARCH_H
-#define VARGA_CACHEDSEARCH_H
+#ifndef VARGA_ARTICLETAGSUMPUBLIC_H
+#define VARGA_ARTICLETAGSUMPUBLIC_H
 
-#include <string>
-
-#include <vagra/search.h>
-#include <vagra/resultcache.h>
+#include <vagra/basesearchvpsu.h>
+#include <vagra/activecache.h>
 
 namespace vagra
 {
 
-template <typename Object, class SearchImpl = Search>
-class CachedSearch : public SearchImpl
+class ArticleTagsPublicSearch: public BaseSearchVPSU
 {
-	const std::vector<unsigned int>& cacheSearch()
-	{
-		if(SearchImpl::table.empty())
-			SearchImpl::table = Object().getTable();
-		if(SearchImpl::search_key.empty())
-			SearchImpl::genSearchKey();
+    public:
+	ArticleTagsPublicSearch();
+};
 
-		ResultCache<Object>& rc = ResultCache<Object>::getInstance();
-		std::pair<bool, typename ResultCache<Object>::SharedResults> _res(rc.get(SearchImpl::search_key));
-
-		if(_res.first)
-			SearchImpl::results = *(_res.second);
-		else
-		{
-			SearchImpl::dbSearch();
-			rc.put(SearchImpl::search_key, SearchImpl::results);
-		}
-	        return SearchImpl::results;
-	}
+class ArticleTagsPublic
+{
+	const ActiveCache<ArticleTagsPublicSearch>::SharedResult tagsum;
 
     public:
-	const std::vector<unsigned int>& getResults()
-	{
-		if(SearchImpl::results.empty())
-			cacheSearch();
-		return SearchImpl::results;
-	}
+	typedef ActiveCache<ArticleTagsPublicSearch>::const_iterator const_iterator;
 
-	/* allow manually set search_key if genSearchKey() is not appropriate */
-	void setSearchKey(const std::string& _key)
-	{
-		SearchImpl::search_key = _key;
-	}
+	ArticleTagsPublic();
 
-	vdate getMTime()
-	{
-		ResultCache<Object>& rc = ResultCache<Object>::getInstance();
-		return rc.getMTime();
-	}
+	const_iterator begin() const;
+	const_iterator end() const;
+
+	void updateResult();
 };
 
 } //namespace vagra
 
-#endif // VARGA_CACHEDSEARCH_H
+#endif // VARGA_ARTICLETAGSUMPUBLIC_H

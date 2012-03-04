@@ -11,7 +11,7 @@
  * instantiate templates or use macros or inline functions from this
  * file, or you compile this file and link it with other files to
  * produce an executable, this file does not by itself cause the
- * resulting executable to be covered by the GNU General Public
+ * contenting executable to be covered by the GNU General Public
  * License. This exception does not however invalidate any other
  * reasons why the executable file might be covered by the GNU Library
  * General Public License.
@@ -26,61 +26,43 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef VARGA_ARTICLECACHE_H
-#define VARGA_ARTICLECACHE_H
+#ifndef VARGA_BASESEARCHVPSU_H
+#define VARGA_BASESEARCHVPSU_H
 
-#include <map>
 #include <vector>
+#include <utility>
 
-#include <cxxtools/mutex.h>
+#include <tntdb/result.h>
+#include <tntdb/row.h>
 
-#include <vagra/types.h>
-#include <vagra/basecache.h>
-#include <vagra/date.h>
-
-#include <vagra/article/article.h>
+#include <cxxtools/smartptr.h>
 
 namespace vagra
 {
 
-typedef std::vector<std::pair<std::string, unsigned int> > tsum;
+/* stores results of the dbquery "search" into a vector of pair<string,unsigned>.
+ * to be used as baseclass object for searches in conjunction with ActiveCache.
+ */
 
-class ArticleCache: public BaseCache<Article>
+class BaseSearchVPSU
 {
-	ArticleCache();
+	const std::string search;
 
-        unsigned int getCacheSize()
-        {
-                Nexus& nx = Nexus::getInstance();
-                return nx.getConfig("art_cache_size", nx.getCacheSize());
-        }
+	BaseSearchVPSU() {}
 
-        std::map<std::string, unsigned int> id_map;
-	tsum tagsum;
-	vdate mtime;
-
-        cxxtools::ReadWriteMutex id_map_mutex;
-	cxxtools::ReadWriteMutex tsum_mutex;
-	cxxtools::ReadWriteMutex mtime_mutex;
+    protected:
+	explicit BaseSearchVPSU(const std::string&);
 
     public:
-        static ArticleCache& getInstance();
-        unsigned int getIdByTitle(const std::string&);
+	typedef std::vector<std::pair<std::string, unsigned int> > Result;
+	typedef cxxtools::SmartPtr<Result,
+		cxxtools::ExternalAtomicRefCounted> SharedResult;
 
-	tsum getTagsum();
-	vdate getMTime();
+	virtual ~BaseSearchVPSU() {}
 
-	void updateTagsum();
-	void updateMTime();
+	SharedResult getResult();
 };
-
-typedef ArticleCache::SharedObject SharedArticle;
-
-unsigned int cachedGetArticleIdByTitle(const std::string&);
-tsum getTagsum();
-
-vdate updated();
 
 } //namespace vagra
 
-#endif // VARGA_ARTICLECACHE_H
+#endif // VARGA_BASESEARCHVPSU_H

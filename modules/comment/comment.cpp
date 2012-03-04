@@ -38,7 +38,7 @@
 #include <vagra/cache.h>
 
 #include <vagra/comment/comment.h>
-#include <vagra/article/cachedarticle.h>
+#include <vagra/article/article.h>
 
 namespace vagra
 {
@@ -192,7 +192,7 @@ void Comment::dbCommit(const unsigned int _aid)
 
 	try
 	{
-		ArticleCache& art_cache = ArticleCache::getInstance();
+		Cache<Article>& art_cache = Cache<Article>::getInstance();
 		Cache<Comment>& comm_cache = Cache<Comment>::getInstance();
 		trans_comm.commit();
 		art_cache.clear(art_id);

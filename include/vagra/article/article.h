@@ -76,6 +76,8 @@ class Article: public BaseObject
 	void setTags(const std::string&);
 
 	void dbCommit(const unsigned int = 0);
+
+	static unsigned int getIdByName(const std::string&);
 };
 
 unsigned int getArticleIdByTitle (const std::string&);
