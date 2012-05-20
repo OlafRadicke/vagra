@@ -32,7 +32,7 @@
 #include <string>
 
 #include <cxxtools/noncopyable.h>
-#include <tnt/tntconfig.h>
+#include <cxxtools/inifile.h>
 
 #include <vagra/types.h>
 
@@ -43,7 +43,7 @@ class Nexus: private cxxtools::NonCopyable
 {
 	Nexus();
 
-	tnt::Tntconfig config;
+	cxxtools::IniFile config;
 
 	std::string db_conn_s;
 	unsigned int db_connpool_size;
@@ -53,12 +53,12 @@ class Nexus: private cxxtools::NonCopyable
     public:
 	static Nexus& getInstance();
 
-	std::string getConfig(const std::string& confstr);
+	std::string getConfig(const std::string&, const std::string&);
 
 	template <typename T>
-		T getConfig(const std::string& confstr, const T& defval)
+		T getConfig(const std::string& section, const std::string& confstr, const T& defval)
 	{
-		return config.getValue(confstr, defval);
+		return config.getValueT(section, confstr, defval);
 	}
 
 	dbconn dbConnection() const;

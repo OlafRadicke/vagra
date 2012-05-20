@@ -43,7 +43,7 @@ void Page::Init(const std::vector<unsigned int>& cont_ids, const unsigned int ar
 	if(amount == 0)
 	{
 		Nexus& nx = Nexus::getInstance();
-		amount = nx.getConfig("page_size", nx.getPageSize());
+		amount = nx.getConfig("vagra", "page_size", nx.getPageSize());
 		if(amount == 0)
 			amount = 10;
 	}

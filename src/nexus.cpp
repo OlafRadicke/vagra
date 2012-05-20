@@ -47,12 +47,12 @@ Nexus::Nexus()
 	else
 		vagraConf = "vagra.conf";
 
-	config.load(vagraConf.c_str());
+	config = cxxtools::IniFile(vagraConf.c_str());
 
-	db_conn_s = getConfig("db_conn_s");
-	db_connpool_size = getConfig("db_connpool_size", 32);
-	cache_size = getConfig("cache_size", 100);
-	page_size = getConfig("page_size", 10);
+	db_conn_s = getConfig("vagra", "db_conn_s");
+	db_connpool_size = getConfig("vagra", "db_connpool_size", 32);
+	cache_size = getConfig("vagra", "cache_size", 100);
+	page_size = getConfig("vagra", "page_size", 10);
 
 	tntdb::setMaxPoolSize(db_connpool_size);
 }
@@ -77,10 +77,9 @@ Nexus& Nexus::getInstance()
 	return *instance;
 }
 
-std::string Nexus::getConfig(const std::string& confstr)
+std::string Nexus::getConfig(const std::string& section, const std::string& confstr)
 {
-	std::string defval;
-	return getConfig(confstr, defval);
+	return config.getValue(section, confstr);
 }
 
 unsigned int Nexus::getCacheSize() const

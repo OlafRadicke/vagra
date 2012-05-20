@@ -31,10 +31,10 @@
 namespace vagra
 {
 
-std::string getConfig(const std::string& confstr)
+std::string getConfig(const std::string& section, const std::string& confstr)
 {
 	Nexus& nx = Nexus::getInstance();
-	return  nx.getConfig(confstr);
+	return  nx.getConfig(section, confstr);
 }
 
 } //namespace vagra

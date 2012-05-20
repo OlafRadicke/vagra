@@ -37,13 +37,13 @@ namespace vagra
 {
 
 template <typename T>
-	T getConfig(const std::string& confstr, const T& defval)
+	T getConfig(const std::string& section, const std::string& confstr, const T& defval)
 {
 	Nexus& nx = Nexus::getInstance();
-	return nx.getConfig(confstr, defval);
+	return nx.getConfig(section, confstr, defval);
 }
 
-std::string getConfig(const std::string&);
+std::string getConfig(const std::string&, const std::string&);
 
 } //namespace vagra
 
