@@ -56,15 +56,15 @@ BaseSearchVPSU::SharedResult BaseSearchVPSU::getResult()
 		SharedResult _result(new Result);
                 Nexus& nx = Nexus::getInstance();
                 dbconn conn = nx.dbConnection();
-                tntdb::Statement q_tags = conn.prepare(search);
-                tntdb::Result res_tags = q_tags.select();
-                for(tntdb::Result::const_iterator it = res_tags.begin();
-                        it != res_tags.end(); ++it)
+                tntdb::Statement q_search = conn.prepare(search);
+                tntdb::Result res_search = q_search.select();
+                for(tntdb::Result::const_iterator it = res_search.begin();
+                        it != res_search.end(); ++it)
                 {
-                        tntdb::Row row_tags = *it;
-                        if(!row_tags[0].isNull() && !row_tags[1].isNull())
+                        tntdb::Row row_search = *it;
+                        if(!row_search[0].isNull() && !row_search[1].isNull())
                         {
-                                _result->push_back(std::pair<std::string, unsigned int> (row_tags[0].getString(), row_tags[1].getUnsigned()));
+                                _result->push_back(std::pair<std::string, unsigned int> (row_search[0].getString(), row_search[1].getUnsigned()));
                         }
                 }
 
