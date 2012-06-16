@@ -26,6 +26,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <vagra/config.h>
 #include <vagra/article/tagsumpublic.h>
 
 namespace vagra
@@ -35,7 +36,7 @@ namespace vagra
 ArticleTagsPublicSearch::ArticleTagsPublicSearch()
 	: BaseSearchVPSU("SELECT tag, count(tag) from tags, articles WHERE tags.art_id = articles.id AND"
 			" articles.cid = (SELECT id FROM context WHERE name = 'public') AND"
-		        " articles.read_level <= 2 GROUP by tag ORDER by count DESC;")
+		        " articles.read_level <= 2 GROUP by tag ORDER by count DESC LIMIT " + getConfig("article", "tagsum_size", std::string("16")) + ";")
 { }
 
 //end ArticleTagsPublicSearch
