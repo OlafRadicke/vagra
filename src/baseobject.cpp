@@ -111,6 +111,9 @@ void BaseObject::dbCommitBase(dbconn& conn, const unsigned int _aid)
 		if(getAuthLevel(_aid) < write_level && getAuthLevel(_aid) < add_level)
 			throw std::domain_error(gettext("insufficient privileges"));
 
+		if(!oid)
+			oid = superuser;
+
 		tntdb::Statement ins_obj = conn.prepare("INSERT INTO "
 			+ tablename + " (oid, cid, read_level, add_level, write_level)"
                 	" VALUES (:Ioid, :Icid, :Iread_level, :Iadd_level, :Iwrite_level)"
