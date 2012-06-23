@@ -41,9 +41,6 @@ class User: public BaseObject
 {
 	std::string logname;
 	std::string dispname;
-	std::string surname;
-	std::string name;
-	std::string mail;
 
 	void Init();
 
@@ -61,15 +58,9 @@ class User: public BaseObject
 	unsigned int getId() const;
 	const std::string& getLogname() const;
 	const std::string& getDispname() const;
-	const std::string& getSurname() const;
-	const std::string& getName() const;
-	const std::string& getMail() const;
 
 	void setLogname(const std::string&);
 	void setDispname(const std::string&);
-	void setSurname(const std::string&);
-	void setName(const std::string&);
-	void setMail(const std::string&);
 
 	void dbCommit(const unsigned int = 0);
 

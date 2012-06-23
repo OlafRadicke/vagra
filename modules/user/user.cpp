@@ -66,8 +66,7 @@ void User::Init()
 		Nexus& nx = Nexus::getInstance();
 		dbconn conn = nx.dbConnection();
 		tntdb::Statement q_user = conn.prepare(
-			"SELECT logname, dispname, surname, name, mail,"
-				" ctime, mtime FROM vuser WHERE id = :Qid");
+			"SELECT logname, dispname, ctime, mtime FROM vuser WHERE id = :Qid");
 		q_user.setUnsigned("Qid", id);
 		tntdb::Row row_user = q_user.selectRow();
 		if(!row_user[0].isNull())
@@ -75,15 +74,9 @@ void User::Init()
 		if(!row_user[1].isNull())
 			dispname = row_user[1].getString();
 		if(!row_user[2].isNull())
-			surname = row_user[2].getString();
+			ctime = row_user[2].getDatetime();
 		if(!row_user[3].isNull())
-			name = row_user[3].getString();
-		if(!row_user[4].isNull())
-			mail = row_user[4].getString();
-		if(!row_user[5].isNull())
-			ctime = row_user[5].getDatetime();
-		if(!row_user[6].isNull())
-			mtime = row_user[6].getDatetime();
+			mtime = row_user[3].getDatetime();
 	}
 	catch(const std::exception& er_user)
 	{
@@ -112,9 +105,6 @@ void User::clear()
 
 	logname.clear();
 	dispname.clear();
-	surname.clear();
-	name.clear();
-	mail.clear();
 }
 
 unsigned int User::getId() const
@@ -132,21 +122,6 @@ const std::string& User::getDispname() const
 	return dispname;
 }
 
-const std::string& User::getSurname() const
-{
-	return surname;
-}
-
-const std::string& User::getName() const
-{
-	return name;
-}
-
-const std::string& User::getMail() const
-{
-	return mail;
-}
-
 void User::setLogname(const std::string& s)
 {
 	logname = s;
@@ -155,21 +130,6 @@ void User::setLogname(const std::string& s)
 void User::setDispname(const std::string& s)
 {
 	dispname = s;
-}
-
-void User::setSurname(const std::string& s)
-{
-	surname = s;
-}
-
-void User::setName(const std::string& s)
-{
-	name = s;
-}
-
-void User::setMail(const std::string& s)
-{
-	mail = s;
 }
 
 void User::dbCommit(const unsigned int _aid)
@@ -207,13 +167,9 @@ void User::dbCommit(const unsigned int _aid)
 		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
 
 		conn.prepare("UPDATE vuser SET logname = :Ilogname, dispname = :Idispname,"
-			" surname = :Isurname, name = :Iname, mail = :Imail"
 			" WHERE id = :Iid")
 		.setString("Ilogname", logname)
 		.setString("Idispname", dispname)
-		.setString("Isurname", surname)
-		.setString("Iname", name)
-		.setString("Imail", mail)
 		.setUnsigned("Iid", id)
 		.execute();
 	}
