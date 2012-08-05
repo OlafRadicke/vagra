@@ -26,6 +26,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <cstdlib>
+
 #include <tntdb/connect.h>
 #include <cxxtools/membar.h>
 #include <cxxtools/mutex.h>

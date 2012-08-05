@@ -49,8 +49,8 @@ class BaseObject
 
 	BaseObject() : ctx(0) {} //need tablename
 
-	virtual void dbCommit(const unsigned int = 0) = NULL;
-	virtual void clear() = NULL;
+	virtual void dbCommit(const unsigned int = 0) = 0;
+	virtual void clear() = 0;
 
     protected:
 	BaseObject(const std::string& _tablename) :
@@ -80,7 +80,7 @@ class BaseObject
 
     public:
 	virtual operator bool() const;
-	virtual BaseObject* operator->() = NULL;
+	virtual BaseObject* operator->() = 0;
 	virtual ~BaseObject() {}
 
 	const CachedContext& getContext() const;
