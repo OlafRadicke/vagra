@@ -43,11 +43,11 @@
 namespace vagra
 {
 
-log_define("vagra")
-
 template <typename SearchFunc>
 class ActiveCache : private cxxtools::NonCopyable
 {	
+	log_define("vagra")
+
     public:
 	typedef typename SearchFunc::Result Result;
 	typedef typename SearchFunc::SharedResult SharedResult;
