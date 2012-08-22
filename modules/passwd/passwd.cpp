@@ -50,24 +50,25 @@ log_define("vagra")
 
 //begin Passwd
 
-Passwd::Passwd(const unsigned int _uid)
+Passwd::Passwd(const unsigned int _id, const unsigned int _aid)
+	: BaseObject("vpasswd", _id, _aid) //call baseconstructor(db_tablename,id,authId)
 {
 	try
 	{
 		Nexus& nx = Nexus::getInstance();
 		dbconn conn = nx.dbConnection();
 
-		tntdb::Statement q_uid = conn.prepare(
-			"SELECT salt, hash FROM vpasswd WHERE uid = :Quid");
-		q_uid.setUnsigned("Quid", _uid);
-		tntdb::Row row_uid = q_uid.selectRow();
-		if(row_uid.empty())
-			throw std::domain_error(gettext("unknown uid"));
-		if(!row_uid[0].isNull())
-			salt = row_uid[0].getString();
-		if(!row_uid[1].isNull())
-			hash = row_uid[1].getString();
-		uid = _uid;
+		tntdb::Statement q_pw = conn.prepare(
+			"SELECT salt, hash FROM vpasswd WHERE id = :Qid");
+		q_pw.setUnsigned("Qid", _id);
+		tntdb::Row row_pw = q_pw.selectRow();
+		if(row_pw.empty())
+			throw std::domain_error(gettext("unknown passwd id"));
+		if(!row_pw[0].isNull())
+			salt = row_pw[0].getString();
+		if(!row_pw[1].isNull())
+			hash = row_pw[1].getString();
+		id = _id;
 	}
 	catch(const std::exception& er_db)
 	{
@@ -76,21 +77,18 @@ Passwd::Passwd(const unsigned int _uid)
 	}
 }
 
-Passwd::Passwd(const std::string& passwd)
-	: uid(0)
+Passwd::Passwd(const std::string& passwd, const unsigned int _aid)
+	: BaseObject("vpasswd", _aid)
 {
 	genHash(passwd);
 }
 
-Passwd::Passwd(const unsigned int _uid, const std::string& passwd)
-	: uid(_uid)
+void Passwd::Passwd::clear()
 {
-	genHash(passwd);
-}
+	clearBase();
 
-void Passwd::setUser(const unsigned int _uid)
-{
-	uid = _uid;
+	salt.clear();
+	hash.clear();
 }
 
 void Passwd::genHash(const std::string& passwd)
@@ -121,17 +119,17 @@ void Passwd::genHash(const std::string& passwd)
 	}
 }
 
-bool Passwd::verify(const std::string& passwd)
+bool Passwd::verify(const std::string& _passwd) const
 {
-	if(passwd.empty())
+	if(_passwd.empty())
 		throw std::domain_error(gettext("empty passwords are not allowed"));
-	return hash == cxxtools::hmac<cxxtools::md5_hash<std::string> >(salt, passwd);
+	return hash == cxxtools::hmac<cxxtools::md5_hash<std::string> >(salt, _passwd);
 }
 
 
-void Passwd::dbUpdate()
+void Passwd::dbCommit(const unsigned int _aid)
 {
-	if(!uid)
+	if(!id)
 		throw std::domain_error(gettext("need valid user id"));
 	if(hash.empty() || salt.empty())
 		throw std::domain_error(gettext("need valid password hash"));
@@ -142,28 +140,14 @@ void Passwd::dbUpdate()
 	tntdb::Transaction trans_passwd(conn);
 	try
 	{
-		tntdb::Statement q_uid = conn.prepare(
-			"SELECT uid FROM vpasswd WHERE uid = :Quid");
-		q_uid.setUnsigned("Quid", uid);
-		tntdb::Result res_uid = q_uid.select();
-		if(res_uid.empty())
-		{
-			conn.prepare("INSERT INTO vpasswd (salt, hash, uid) VALUES"
-					" (:Isalt, :Ihash, :Iuid)")
-				.setString("Isalt", salt)
-				.setString("Ihash", hash)
-				.setUnsigned("Iuid", uid)
-				.execute();
-		}
-		else
-		{
-			conn.prepare("UPDATE vpasswd SET salt = :Isalt, hash = :Ihash"
-					" WHERE uid = :Iuid")
-				.setString("Isalt",salt)
-				.setString("Ihash", hash)
-				.setUnsigned("Iuid", uid)
-				.execute();
-		}
+		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
+
+		conn.prepare("UPDATE vpasswd SET salt = :Isalt, hash = :Ihash"
+				" WHERE id = :Iid")
+			.setString("Isalt",salt)
+			.setString("Ihash", hash)
+			.setUnsigned("Iid", id)
+			.execute();
 		trans_passwd.commit();
 	}
 	catch(const std::exception& er_trans)

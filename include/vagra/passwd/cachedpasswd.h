@@ -26,27 +26,28 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdexcept>
-#include <libintl.h>
+#ifndef VARGA_CACHEDPASSWD_H
+#define VARGA_CACHEDPASSWD_H
 
-#include <vagra/passwd/auth.h>
-#include <vagra/passwd/cachedpasswd.h>
+#include <vagra/cache.h>
+#include <vagra/passwd/passwd.h>
 
 namespace vagra
 {
 
-//begin Auth
-
-Auth::Auth(const unsigned int _uid, const std::string& _passwd)
-	: uid(0)
+class CachedPasswd
 {
-	CachedPasswd pass(_uid);
-	if(pass->verify(_passwd))
-		uid = _uid;
-	else
-		throw std::domain_error(gettext("password verification faild"));
-}
+	CachedPasswd() {}
+	Cache<Passwd>::SharedObject passwd;
 
-// end Auth
+    public:
+	explicit CachedPasswd(const unsigned int, const unsigned int = 0);
+	operator bool() const;
+
+	const Cache<Passwd>::SharedObject& operator->() const { return passwd; }
+	Passwd operator*() const { return *passwd; }
+};
 
 } //namespace vagra
+
+#endif // VARGA_CACHEDPASSWD_H

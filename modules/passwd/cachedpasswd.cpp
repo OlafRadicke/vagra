@@ -26,27 +26,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdexcept>
-#include <libintl.h>
-
-#include <vagra/passwd/auth.h>
 #include <vagra/passwd/cachedpasswd.h>
 
 namespace vagra
 {
 
-//begin Auth
-
-Auth::Auth(const unsigned int _uid, const std::string& _passwd)
-	: uid(0)
+CachedPasswd::CachedPasswd(const unsigned int _id, const unsigned int _aid)
 {
-	CachedPasswd pass(_uid);
-	if(pass->verify(_passwd))
-		uid = _uid;
-	else
-		throw std::domain_error(gettext("password verification faild"));
+	Cache<Passwd>& passwd_cache = Cache<Passwd>::getInstance();
+	passwd = passwd_cache.get(_id,_aid);
 }
-
-// end Auth
 
 } //namespace vagra

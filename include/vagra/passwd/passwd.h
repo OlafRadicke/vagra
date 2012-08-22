@@ -32,29 +32,29 @@
 #include <string>
 
 #include <vagra/types.h>
+#include <vagra/baseobject.h>
 
 namespace vagra
 {
 
-class Passwd
+class Passwd: public BaseObject
 {
-	Passwd() {}
+	Passwd() : BaseObject("vpasswd") {}
 	std::string salt;
 	std::string hash;
-	unsigned int uid;
 
 	void genHash(const std::string&);
 
     public:
-	explicit Passwd(const unsigned int);
-	explicit Passwd(const std::string&);
-	Passwd(const unsigned int, const std::string&);
+	explicit Passwd(const unsigned int, const unsigned int = 0);
+	explicit Passwd(const std::string&, const unsigned int = 0);
 
-	void setUser(const unsigned int);
-	bool verify(const std::string&);
+	Passwd* operator->() { return this; }
+	void clear();
 
-	void dbInsert() { dbUpdate(); }
-	void dbUpdate();
+	bool verify(const std::string&) const;
+
+	void dbCommit(const unsigned int = 0);
 };
 
 } //namespace vagra
