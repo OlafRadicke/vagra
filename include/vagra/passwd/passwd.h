@@ -39,13 +39,14 @@ namespace vagra
 
 class Passwd: public BaseObject
 {
-	Passwd() : BaseObject("vpasswd") {}
 	std::string salt;
 	std::string hash;
 
 	void genHash(const std::string&);
 
     public:
+	Passwd() : BaseObject("vpasswd") {}
+
 	explicit Passwd(const unsigned int, const unsigned int = 0);
 	explicit Passwd(const std::string&, const unsigned int = 0);
 

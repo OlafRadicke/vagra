@@ -26,9 +26,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <stdlib.h>
+#include <time.h>
+
 #include <sstream>
 #include <algorithm>
+
 #include <cxxtools/regex.h>
+
 #include <vagra/utils.h>
 
 namespace vagra
@@ -94,5 +99,29 @@ bool invalidChar::operator()(const char& c)
 		return false;
 	return true;
 }
+
+// begin randomString
+
+randomString::randomString(unsigned int _length)
+{
+	randstr.reserve(_length);
+
+	srand48(time(NULL)); 
+ 
+	for(unsigned int n = 0; n <= _length; n++) 
+	{ 
+		char c(mrand48()%127); 
+		if(c < 0) 
+		c = ~c; 
+		randstr.push_back(c); 
+	}
+}
+
+randomString::operator const std::string&() const
+{
+	return randstr;
+}
+
+// end randomString
 
 } //namespace vagra

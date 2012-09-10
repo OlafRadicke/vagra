@@ -47,6 +47,17 @@ struct invalidChar: public std::unary_function<const char&,bool>
 	bool operator()(const char& c);
 };
 
+//call 'randString foo(length)' to get an random sting "foo" length characters long.
+class randomString
+{
+	randomString() {} //need lenght
+	std::string randstr;
+
+    public:
+	explicit randomString(unsigned int);
+	operator const std::string&() const;
+};
+
 } //namespace vagra
 
 #endif // VARGA_UTILS_H

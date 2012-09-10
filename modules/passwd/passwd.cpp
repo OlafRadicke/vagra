@@ -26,9 +26,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdlib.h> // remove me when radom strings
-#include <time.h>   // are available in cxxtools
-
 #include <stdexcept>
 #include <libintl.h>
 #include <cxxtools/log.h>
@@ -40,6 +37,7 @@
 #include <tntdb/row.h>
 
 #include <vagra/nexus.h>
+#include <vagra/utils.h>
 
 #include <vagra/passwd/passwd.h>
 
@@ -98,18 +96,8 @@ void Passwd::genHash(const std::string& passwd)
 
 	try
 	{
-		std::string _randstr; // remove me when radom strings
-		_randstr.reserve(64); // are available in cxxtools
-		srand48(time(NULL));
-
-		for(int n = 0; n <= 64; n++)
-  		{
-			char c(mrand48()%127);
-			if(c < 0)
-				c = ~c;
-			_randstr.push_back(c);
-		}
-		salt = cxxtools::hmac<cxxtools::md5_hash<std::string> >(_randstr, passwd);
+		vagra::randomString randstr(64);
+		salt = cxxtools::hmac<cxxtools::md5_hash<std::string> >(randstr, passwd);
 		hash = cxxtools::hmac<cxxtools::md5_hash<std::string> >(salt, passwd);
 	}
 	catch(const std::exception& er_hash)
