@@ -31,6 +31,9 @@
 
 #include <string>
 
+#include <vagra/user/user.h>
+#include <vagra/user/cacheduser.h>
+
 namespace vagra
 {
 
@@ -43,7 +46,8 @@ class Auth
     public:
 	Auth() :
        		uid(0) {};
-	Auth(const unsigned int, const std::string&);
+	Auth(const User&, const std::string&);
+	Auth(const CachedUser&, const std::string&);
 
 	operator unsigned int() const { return uid; }
 };

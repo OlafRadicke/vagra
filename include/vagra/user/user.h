@@ -34,6 +34,8 @@
 #include <vagra/types.h>
 #include <vagra/baseobject.h>
 
+#include <vagra/passwd/passwd.h>
+
 namespace vagra
 {
 
@@ -42,7 +44,9 @@ class User: public BaseObject
 	std::string logname;
 	std::string dispname;
 
-	void Init();
+	Passwd password;
+
+	void Init(const unsigned int = 0);
 
     public:
 	User() : BaseObject("vuser") {}
@@ -58,9 +62,11 @@ class User: public BaseObject
 	unsigned int getId() const;
 	const std::string& getLogname() const;
 	const std::string& getDispname() const;
+	const Passwd& getPasswd() const;
 
 	void setLogname(const std::string&);
 	void setDispname(const std::string&);
+	void setPasswd(const Passwd&);
 
 	void dbCommit(const unsigned int = 0);
 

@@ -47,26 +47,26 @@ log_define("vagra")
 
 //begin User
 
-User::User(const unsigned int _id, const unsigned _aid)
-	: BaseObject("vuser", _id,_aid) //call baseconstructor(db_tablename,id,authId)
+User::User(const unsigned int _id, const unsigned int _aid)
+	: BaseObject("vuser", _id, _aid) //call baseconstructor(db_tablename,id,authId)
 {
-	Init();
+	Init(_aid);
 }
 
-User::User(const std::string& _name, const unsigned _aid)
+User::User(const std::string& _name, const unsigned int _aid)
 	: BaseObject("vuser", getIdByName(_name), _aid)
 {
-	Init();
+	Init(_aid);
 }
 
-void User::Init()
+void User::Init(const unsigned int _aid)
 {
 	try
 	{
 		Nexus& nx = Nexus::getInstance();
 		dbconn conn = nx.dbConnection();
 		tntdb::Statement q_user = conn.prepare(
-			"SELECT logname, dispname, ctime, mtime FROM vuser WHERE id = :Qid");
+			"SELECT logname, dispname, ctime, mtime, pw_id FROM vuser WHERE id = :Qid");
 		q_user.setUnsigned("Qid", id);
 		tntdb::Row row_user = q_user.selectRow();
 		if(!row_user[0].isNull())
@@ -77,6 +77,8 @@ void User::Init()
 			ctime = row_user[2].getDatetime();
 		if(!row_user[3].isNull())
 			mtime = row_user[3].getDatetime();
+		if(!row_user[4].isNull())
+			password = Passwd(row_user[4].getUnsigned(), _aid);
 	}
 	catch(const std::exception& er_user)
 	{
@@ -105,6 +107,7 @@ void User::clear()
 
 	logname.clear();
 	dispname.clear();
+	password.clear();
 }
 
 unsigned int User::getId() const
@@ -122,6 +125,11 @@ const std::string& User::getDispname() const
 	return dispname;
 }
 
+const Passwd& User::getPasswd() const
+{
+	return password;
+}
+
 void User::setLogname(const std::string& s)
 {
 	logname = s;
@@ -130,6 +138,17 @@ void User::setLogname(const std::string& s)
 void User::setDispname(const std::string& s)
 {
 	dispname = s;
+}
+
+void User::setPasswd(const Passwd& _pw)
+{
+	if(password)
+		throw std::domain_error(gettext("user already has a password"));
+	if(!_pw)
+		throw std::domain_error(gettext("invalid password submitted"));
+	if(_pw.getOwner() != id)
+		throw std::domain_error(gettext("password must be owned by the user"));
+	password = _pw;
 }
 
 void User::dbCommit(const unsigned int _aid)
@@ -167,9 +186,10 @@ void User::dbCommit(const unsigned int _aid)
 		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
 
 		conn.prepare("UPDATE vuser SET logname = :Ilogname, dispname = :Idispname,"
-			" WHERE id = :Iid")
+			" pw_id = :Ipw_id WHERE id = :Iid")
 		.setString("Ilogname", logname)
 		.setString("Idispname", dispname)
+		.setUnsigned("Ipw_id", password)
 		.setUnsigned("Iid", id)
 		.execute();
 	}

@@ -29,20 +29,28 @@
 #include <stdexcept>
 #include <libintl.h>
 
-#include <vagra/passwd/auth.h>
-#include <vagra/passwd/cachedpasswd.h>
+#include <vagra/user/auth.h>
+#include <vagra/passwd/passwd.h>
 
 namespace vagra
 {
 
 //begin Auth
 
-Auth::Auth(const unsigned int _uid, const std::string& _passwd)
+Auth::Auth(const User& usr, const std::string& _passwd)
 	: uid(0)
 {
-	CachedPasswd pass(_uid);
-	if(pass->verify(_passwd))
-		uid = _uid;
+	if(usr.getPasswd().verify(_passwd))
+		uid = usr;
+	else
+		throw std::domain_error(gettext("password verification faild"));
+}
+
+Auth::Auth(const CachedUser& usr, const std::string& _passwd)
+	: uid(0)
+{
+	if(usr->getPasswd().verify(_passwd))
+		uid = usr;
 	else
 		throw std::domain_error(gettext("password verification faild"));
 }

@@ -75,10 +75,10 @@ Passwd::Passwd(const unsigned int _id, const unsigned int _aid)
 	}
 }
 
-Passwd::Passwd(const std::string& passwd, const unsigned int _aid)
+Passwd::Passwd(const std::string& _passwd, const unsigned int _aid)
 	: BaseObject("vpasswd", _aid)
 {
-	genHash(passwd);
+	genHash(_passwd);
 }
 
 void Passwd::Passwd::clear()
@@ -89,16 +89,16 @@ void Passwd::Passwd::clear()
 	hash.clear();
 }
 
-void Passwd::genHash(const std::string& passwd)
+void Passwd::genHash(const std::string& _passwd)
 {
-	if(passwd.empty())
+	if(_passwd.empty())
 		throw std::domain_error(gettext("empty passwords are not allowed"));
 
 	try
 	{
 		vagra::randomString randstr(64);
-		salt = cxxtools::hmac<cxxtools::md5_hash<std::string> >(randstr, passwd);
-		hash = cxxtools::hmac<cxxtools::md5_hash<std::string> >(salt, passwd);
+		salt = cxxtools::hmac<cxxtools::md5_hash<std::string> >(randstr, _passwd);
+		hash = cxxtools::hmac<cxxtools::md5_hash<std::string> >(salt, _passwd);
 	}
 	catch(const std::exception& er_hash)
 	{
@@ -114,11 +114,13 @@ bool Passwd::verify(const std::string& _passwd) const
 	return hash == cxxtools::hmac<cxxtools::md5_hash<std::string> >(salt, _passwd);
 }
 
+void Passwd::update(const std::string& _passwd)
+{
+	genHash(_passwd);
+}
 
 void Passwd::dbCommit(const unsigned int _aid)
 {
-	if(!id)
-		throw std::domain_error(gettext("need valid user id"));
 	if(hash.empty() || salt.empty())
 		throw std::domain_error(gettext("need valid password hash"));
 	
