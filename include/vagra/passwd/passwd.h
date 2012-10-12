@@ -50,8 +50,7 @@ class Passwd: public BaseObject
 	explicit Passwd(const unsigned int, const unsigned int = 0);
 	explicit Passwd(const std::string&, const unsigned int = 0);
 
-	operator int() const { return id; }
-	operator unsigned int() const { return id; }
+	operator bool() const;
 	Passwd* operator->() { return this; }
 	void clear();
 
@@ -59,6 +58,8 @@ class Passwd: public BaseObject
 	void update(const std::string&);
 
 	void dbCommit(const unsigned int = 0);
+	//allow dbCommit within an other transaction
+	void dbCommit(dbconn&, const unsigned int = 0);
 };
 
 } //namespace vagra

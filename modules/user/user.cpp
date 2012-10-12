@@ -37,6 +37,7 @@
 
 #include <vagra/nexus.h>
 #include <vagra/cache.h>
+#include <vagra/utils.h>
 
 #include <vagra/user/user.h>
 
@@ -66,19 +67,15 @@ void User::Init(const unsigned int _aid)
 		Nexus& nx = Nexus::getInstance();
 		dbconn conn = nx.dbConnection();
 		tntdb::Statement q_user = conn.prepare(
-			"SELECT logname, dispname, ctime, mtime, pw_id FROM vuser WHERE id = :Qid");
+			"SELECT logname, dispname, pw_id FROM vuser WHERE id = :Qid");
 		q_user.setUnsigned("Qid", id);
 		tntdb::Row row_user = q_user.selectRow();
 		if(!row_user[0].isNull())
 			logname = row_user[0].getString();
 		if(!row_user[1].isNull())
 			dispname = row_user[1].getString();
-		if(!row_user[2].isNull())
-			ctime = row_user[2].getDatetime();
-		if(!row_user[3].isNull())
-			mtime = row_user[3].getDatetime();
-		if(!row_user[4].isNull())
-			password = Passwd(row_user[4].getUnsigned(), _aid);
+		if(!row_user[2].isNull() && row_user[2].getUnsigned())
+			password = Passwd(row_user[2].getUnsigned(), _aid);
 	}
 	catch(const std::exception& er_user)
 	{
@@ -108,11 +105,6 @@ void User::clear()
 	logname.clear();
 	dispname.clear();
 	password.clear();
-}
-
-unsigned int User::getId() const
-{
-	return id;
 }
 
 const std::string& User::getLogname() const
@@ -151,6 +143,14 @@ void User::setPasswd(const Passwd& _pw)
 	password = _pw;
 }
 
+std::string User::setRandomPasswd(const unsigned int _aid)
+{
+	password.setContext("passwd", _aid);
+	vagra::randomString randstr(12);
+	password.update(randstr);
+	return randstr;
+}
+
 void User::dbCommit(const unsigned int _aid)
 {
 	if(logname.empty())
@@ -161,6 +161,9 @@ void User::dbCommit(const unsigned int _aid)
 	cxxtools::Regex checkLogname("^[aA-zZ]*$");
 	if(!checkLogname.match(logname))
 		throw std::domain_error(gettext("invalid logname"));
+
+	if(!password)
+		throw std::domain_error(gettext("password not set"));
 
 	Nexus& nx = Nexus::getInstance();
 	dbconn conn = nx.dbConnection();
@@ -184,12 +187,15 @@ void User::dbCommit(const unsigned int _aid)
 	try
 	{
 		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
+		if(!password.getOwner())
+			password.setOwner(id, _aid);
+		password.dbCommit(conn, _aid);
 
 		conn.prepare("UPDATE vuser SET logname = :Ilogname, dispname = :Idispname,"
 			" pw_id = :Ipw_id WHERE id = :Iid")
 		.setString("Ilogname", logname)
 		.setString("Idispname", dispname)
-		.setUnsigned("Ipw_id", password)
+		.setUnsigned("Ipw_id", password.getId())
 		.setUnsigned("Iid", id)
 		.execute();
 	}
@@ -202,8 +208,11 @@ void User::dbCommit(const unsigned int _aid)
 	try
 	{
 		Cache<User>& user_cache = Cache<User>::getInstance();
+		Cache<Passwd>& passwd_cache = Cache<Passwd>::getInstance();
 		trans_user.commit();
 		user_cache.clear(id);
+		passwd_cache.clear(password.getId());
+
 	}
 	catch(const std::exception& er_trans)
 	{

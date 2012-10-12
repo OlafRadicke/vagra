@@ -104,6 +104,7 @@ bool invalidChar::operator()(const char& c)
 
 randomString::randomString(unsigned int _length)
 {
+	std::locale loc;
 	randstr.reserve(_length);
 
 	srand48(time(NULL)); 
@@ -112,7 +113,13 @@ randomString::randomString(unsigned int _length)
 	{ 
 		char c(mrand48()%127); 
 		if(c < 0) 
-		c = ~c; 
+			c = ~c; 
+		while(!std::isalnum(c))
+		{
+			c = mrand48()%127; 
+			if(c < 0) 
+				c = ~c; 
+		}
 		randstr.push_back(c); 
 	}
 }

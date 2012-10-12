@@ -59,7 +59,6 @@ class User: public BaseObject
 	User* operator->() { return this; }
 	void clear();
 
-	unsigned int getId() const;
 	const std::string& getLogname() const;
 	const std::string& getDispname() const;
 	const Passwd& getPasswd() const;
@@ -67,6 +66,8 @@ class User: public BaseObject
 	void setLogname(const std::string&);
 	void setDispname(const std::string&);
 	void setPasswd(const Passwd&);
+
+	std::string setRandomPasswd(const unsigned int = 0);
 
 	void dbCommit(const unsigned int = 0);
 

@@ -37,6 +37,7 @@
 #include <tntdb/row.h>
 
 #include <vagra/nexus.h>
+#include <vagra/cache.h>
 #include <vagra/utils.h>
 
 #include <vagra/passwd/passwd.h>
@@ -81,6 +82,12 @@ Passwd::Passwd(const std::string& _passwd, const unsigned int _aid)
 	genHash(_passwd);
 }
 
+Passwd::operator bool() const
+{
+	return (!salt.empty() && !hash.empty());
+}
+
+
 void Passwd::Passwd::clear()
 {
 	clearBase();
@@ -121,13 +128,28 @@ void Passwd::update(const std::string& _passwd)
 
 void Passwd::dbCommit(const unsigned int _aid)
 {
+	try{
+		Nexus& nx = Nexus::getInstance();
+		dbconn conn = nx.dbConnection();
+
+		tntdb::Transaction trans_passwd(conn);
+		dbCommit(conn, _aid);
+		Cache<Passwd>& passwd_cache = Cache<Passwd>::getInstance();
+		trans_passwd.commit();
+		passwd_cache.clear(id);
+	}
+	catch(const std::exception& er_trans)
+	{
+		log_error(er_trans.what());
+		throw std::domain_error(gettext("could not commit passwd"));
+	}
+}
+
+void Passwd::dbCommit(dbconn& conn, const unsigned int _aid)
+{
 	if(hash.empty() || salt.empty())
 		throw std::domain_error(gettext("need valid password hash"));
 	
-	Nexus& nx = Nexus::getInstance();
-	dbconn conn = nx.dbConnection();
-
-	tntdb::Transaction trans_passwd(conn);
 	try
 	{
 		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
@@ -138,12 +160,11 @@ void Passwd::dbCommit(const unsigned int _aid)
 			.setString("Ihash", hash)
 			.setUnsigned("Iid", id)
 			.execute();
-		trans_passwd.commit();
 	}
 	catch(const std::exception& er_trans)
 	{
 		log_error(er_trans.what());
-		throw std::domain_error(gettext("could not commit passwd"));
+		throw std::domain_error(gettext("could not update passwd"));
 	}
 }
 
