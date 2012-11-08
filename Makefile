@@ -3,7 +3,7 @@ include Makefile.inc
 all: libvagra.so
 
 libvagra.so: vagra_modules
-	${CXX} -o $@ ${LDFLAGS} *.o
+	${CXX} -o $@ *.o ${LDFLAGS}
 
 vagra:
 	cd src && $(MAKE)
