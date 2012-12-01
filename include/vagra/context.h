@@ -71,7 +71,8 @@ class Context
 	const unsigned char getReadLevel() const;
 	const unsigned char getAddLevel() const;
 	const unsigned char getWriteLevel() const;
-
+	inline const std::string& getTable() const //used by Search.setType()
+	{ static std::string tablename("context"); return tablename; }
 	const unsigned char getAuthLevel(const unsigned int = 0) const;
 
 	void setReadLevel(const unsigned char, const unsigned int = 0);
