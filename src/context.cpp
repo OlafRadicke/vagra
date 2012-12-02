@@ -286,6 +286,14 @@ const unsigned char Context::getAuthLevel(const unsigned int _aid) const
         return _auth_level;
 }
 
+void Context::setName(const std::string& _name, const unsigned int _aid)
+{
+	if(!_aid || (_aid != superuser
+			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
+		throw std::domain_error(gettext("insufficient privileges"));
+	name = _name;
+}
+
 void Context::setReadLevel(const unsigned char _lev, const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser

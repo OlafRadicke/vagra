@@ -79,6 +79,7 @@ class Context
 	{ static std::string tablename("context"); return tablename; }
 	const unsigned char getAuthLevel(const unsigned int = 0) const;
 
+	void setName(const std::string&, const unsigned int = 0);
 	void setReadLevel(const unsigned char, const unsigned int = 0);
 	void setAddLevel(const unsigned char, const unsigned int = 0);
 	void setWriteLevel(const unsigned char, const unsigned int = 0);
