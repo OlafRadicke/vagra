@@ -256,6 +256,21 @@ const unsigned char Context::getWriteLevel() const
 	return write_level;
 }
 
+const std::vector<unsigned int>& Context::getUnprivileged() const
+{
+	return unprivileged;
+}
+
+const std::vector<unsigned int>& Context::getPrivileged() const
+{
+	return privileged;
+}
+
+const std::vector<unsigned int>& Context::getAdmin() const
+{
+	return admin;;
+}
+
 const unsigned char Context::getAuthLevel(const unsigned int _aid) const
 {
 	if(!_aid)

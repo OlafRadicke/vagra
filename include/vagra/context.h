@@ -71,6 +71,10 @@ class Context
 	const unsigned char getReadLevel() const;
 	const unsigned char getAddLevel() const;
 	const unsigned char getWriteLevel() const;
+	const std::vector<unsigned int>& getUnprivileged() const;
+	const std::vector<unsigned int>& getPrivileged() const;
+	const std::vector<unsigned int>& getAdmin() const;
+
 	inline const std::string& getTable() const //used by Search.setType()
 	{ static std::string tablename("context"); return tablename; }
 	const unsigned char getAuthLevel(const unsigned int = 0) const;
