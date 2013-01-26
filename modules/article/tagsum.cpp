@@ -27,40 +27,42 @@
  */
 
 #include <vagra/config.h>
-#include <vagra/article/tagsumpublic.h>
+#include <vagra/article/tagsum.h>
 
 namespace vagra
 {
 
-//begin ArticleTagsPublicSearch
-ArticleTagsPublicSearch::ArticleTagsPublicSearch()
+//begin ArticleTagsSearch
+ArticleTagsSearch::ArticleTagsSearch()
 	: BaseSearchVPSU("SELECT tag, count(tag) from tags, articles WHERE tags.art_id = articles.id AND"
-			" articles.cid = (SELECT id FROM context WHERE name = 'public') AND"
-		        " articles.read_level <= 2 GROUP by tag ORDER by count DESC LIMIT " + getConfig("article", "tagsum_size", std::string("16")) + ";")
+			" articles.cid = (SELECT id FROM context WHERE name = '"
+		       	+ getConfig("article", "tagsum_context",  std::string("public")) + "') AND"
+		        " articles.read_level <= 2 GROUP by tag ORDER by count DESC LIMIT "
+		       	+ getConfig("article", "tagsum_size", std::string("16")) + ";")
 { }
 
-//end ArticleTagsPublicSearch
-//begin ArticleTagsPublic
+//end ArticleTagsSearch
+//begin ArticleTags
 
-ArticleTagsPublic::ArticleTagsPublic()
-	: tagsum(ActiveCache<ArticleTagsPublicSearch>::getResult())
+ArticleTags::ArticleTags()
+	: tagsum(ActiveCache<ArticleTagsSearch>::getResult())
 { }
 
-ArticleTagsPublic::const_iterator ArticleTagsPublic::begin() const
+ArticleTags::const_iterator ArticleTags::begin() const
 {
 	return tagsum->begin();
 }
 
-ArticleTagsPublic::const_iterator ArticleTagsPublic::end() const
+ArticleTags::const_iterator ArticleTags::end() const
 {
 	return tagsum->end();
 }
 
-void ArticleTagsPublic::updateResult()
+void ArticleTags::updateResult()
 {
-	ActiveCache<ArticleTagsPublicSearch>::updateResult();
+	ActiveCache<ArticleTagsSearch>::updateResult();
 }
 
-//end ArticleTagsPublic
+//end ArticleTags
 
 } //namespace vagra

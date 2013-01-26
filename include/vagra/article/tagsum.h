@@ -26,8 +26,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef VARGA_ARTICLETAGSUMPUBLIC_H
-#define VARGA_ARTICLETAGSUMPUBLIC_H
+#ifndef VARGA_ARTICLETAGSUM_H
+#define VARGA_ARTICLETAGSUM_H
 
 #include <vagra/basesearchvpsu.h>
 #include <vagra/activecache.h>
@@ -35,20 +35,20 @@
 namespace vagra
 {
 
-class ArticleTagsPublicSearch: public BaseSearchVPSU
+class ArticleTagsSearch: public BaseSearchVPSU
 {
     public:
-	ArticleTagsPublicSearch();
+	ArticleTagsSearch();
 };
 
-class ArticleTagsPublic
+class ArticleTags
 {
-	const ActiveCache<ArticleTagsPublicSearch>::SharedResult tagsum;
+	const ActiveCache<ArticleTagsSearch>::SharedResult tagsum;
 
     public:
-	typedef ActiveCache<ArticleTagsPublicSearch>::const_iterator const_iterator;
+	typedef ActiveCache<ArticleTagsSearch>::const_iterator const_iterator;
 
-	ArticleTagsPublic();
+	ArticleTags();
 
 	const_iterator begin() const;
 	const_iterator end() const;
@@ -58,4 +58,4 @@ class ArticleTagsPublic
 
 } //namespace vagra
 
-#endif // VARGA_ARTICLETAGSUMPUBLIC_H
+#endif // VARGA_ARTICLETAGSUM_H
