@@ -26,7 +26,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdexcept>
 #include <libintl.h>
 #include <algorithm>
 #include <cxxtools/log.h>
@@ -35,6 +34,7 @@
 #include <tntdb/transaction.h>
 #include <tntdb/row.h>
 
+#include <vagra/exception.h>
 #include <vagra/utils.h>
 #include <vagra/nexus.h>
 #include <vagra/cache.h>
@@ -84,6 +84,7 @@ Article::Article(const unsigned int _id, const unsigned int _aid)
 		catch(const std::exception& er_art)
 		{
 			log_error(er_art.what());
+			throw;
     		}
 		try
 		{
@@ -96,13 +97,14 @@ Article::Article(const unsigned int _id, const unsigned int _aid)
 			{
 				tntdb::Row row_art_tags = *it;
 				if(row_art_tags[0].isNull())
-					throw std::domain_error(gettext("got an NULL tag"));
+					throw InvalidValue(gettext("got an NULL tag"));
 				tags.push_back(row_art_tags[0].getString());
       			}
     		}
 		catch(const std::exception& er_tag)
 		{
 			log_error(er_tag.what());
+			throw;
 		}
 		try
 		{
@@ -115,18 +117,20 @@ Article::Article(const unsigned int _id, const unsigned int _aid)
 			{
 				tntdb::Row row_art_comm_id = *it;
 				if(row_art_comm_id[0].isNull())
-					throw std::domain_error(gettext("got an NULL comment"));
+					throw InvalidValue(gettext("got an NULL comment"));
 				comment_ids.push_back(row_art_comm_id[0].getUnsigned());
       			}
 		}
 		catch(const std::exception& er_comm)
 		{
 			log_error(er_comm.what());
+			throw;
 		}
   	}
 	catch(const std::exception& er_db)
 	{
 		log_error(er_db.what());
+		throw;
   	}
 }
 
@@ -265,11 +269,11 @@ void Article::dbCommit(const unsigned int _aid)
 	title = underscore2space(title);
 
 	if(title.empty())
-		throw std::domain_error(gettext("title empty"));
+		throw InvalidValue(gettext("title empty"));
 	if(head.empty())
-		throw std::domain_error(gettext("headline empty"));
+		throw InvalidValue(gettext("headline empty"));
 	if(text.empty() && abstract.empty())
-		throw std::domain_error(gettext("need abstract or text"));
+		throw InvalidValue(gettext("need abstract or text"));
 
 	Nexus& nx = Nexus::getInstance();
 	dbconn conn = nx.dbConnection();
@@ -277,7 +281,7 @@ void Article::dbCommit(const unsigned int _aid)
 	tntdb::Transaction trans_art(conn);
 
 	if(id != getArticleIdByTitle(title, conn))
-		throw std::domain_error(gettext("article already exist"));
+		throw InvalidValue(gettext("article already exist"));
 
 	try
 	{
@@ -292,6 +296,10 @@ void Article::dbCommit(const unsigned int _aid)
 		.setString("Iauthor", author)
 		.setUnsigned("Iid", id)
 		.execute();
+	}
+	catch(const Exception&)
+	{
+		throw;
 	}
 	catch(const std::exception& er_db)
 	{

@@ -27,12 +27,12 @@
  */
 
 #include <libintl.h>
-#include <stdexcept>
 #include <algorithm>
 #include <sstream>
 
-#include <vagra/article/articlesearch.h>
+#include <vagra/exception.h>
 #include <vagra/utils.h>
+#include <vagra/article/articlesearch.h>
 
 namespace vagra
 {
@@ -43,14 +43,14 @@ void ArticleTagSearch::setTag(const std::string& _tag)
 {
 	if(_tag.empty() || std::find_if(_tag.begin(), _tag.end(),
 			invalidChar()) != _tag.end()) 
-		throw std::domain_error(gettext("invalid tag"));
+		throw InvalidValue(gettext("invalid tag"));
 	tag = _tag;
 }
 
 void ArticleTagSearch::genSearchString()
 {
 	if(tag.empty())
-		throw std::domain_error(gettext("no tag defined for search"));
+		throw InvalidValue(gettext("no tag defined for search"));
 
 	search_string = "SELECT id FROM articles, tags WHERE tags.art_id = articles.id AND tags.tag = '"
 			+ tag + "' AND read_level <= :Qread_level";

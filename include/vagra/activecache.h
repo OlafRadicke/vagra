@@ -29,8 +29,6 @@
 #ifndef VARGA_ACTIVECACHE_H
 #define VARGA_ACTIVECACHE_H
 
-#include <stdexcept>
-
 #include <cxxtools/noncopyable.h>
 #include <cxxtools/smartptr.h>
 #include <cxxtools/mutex.h>
@@ -39,6 +37,8 @@
 #include <cxxtools/log.h>
 #include <cxxtools/loginit.h>
 #include <cxxtools/membar.h>
+
+#include <vagra/exception.h>
 
 namespace vagra
 {
@@ -148,6 +148,10 @@ class ActiveCache : private cxxtools::NonCopyable
 					cxxtools::WriteLock wlock(ac_mutex);
 					result = _result;
 				}
+			}
+			catch(const Exception&)
+			{
+				throw;
 			}
 			catch(const std::exception& er_ac)
 			{

@@ -26,7 +26,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdexcept>
 #include <libintl.h>
 #include <cxxtools/log.h>
 #include <cxxtools/loginit.h>
@@ -35,6 +34,7 @@
 #include <tntdb/transaction.h>
 #include <tntdb/row.h>
 
+#include <vagra/exception.h>
 #include <vagra/nexus.h>
 #include <vagra/cache.h>
 #include <vagra/utils.h>
@@ -80,6 +80,7 @@ void User::Init(const unsigned int _aid)
 	catch(const std::exception& er_user)
 	{
 		log_error(er_user.what());
+		throw std::domain_error(gettext("failed to read user data"));
 	}
 }
 
@@ -135,11 +136,11 @@ void User::setDispname(const std::string& s)
 void User::setPasswd(const Passwd& _pw)
 {
 	if(password)
-		throw std::domain_error(gettext("user already has a password"));
+		throw InvalidValue(gettext("user already has a password"));
 	if(!_pw)
-		throw std::domain_error(gettext("invalid password submitted"));
+		throw InvalidValue(gettext("invalid password submitted"));
 	if(_pw.getOwner() != id)
-		throw std::domain_error(gettext("password must be owned by the user"));
+		throw InvalidValue(gettext("password must be owned by the user"));
 	password = _pw;
 }
 
@@ -154,34 +155,34 @@ std::string User::setRandomPasswd(const unsigned int _aid)
 void User::dbCommit(const unsigned int _aid)
 {
 	if(logname.empty())
-		throw std::domain_error(gettext("need a login name name"));
+		throw InvalidValue(gettext("need a login name name"));
 	if(logname.length() > 16)
-		throw std::domain_error(gettext("logname to long"));
+		throw InvalidValue(gettext("logname to long"));
 	
 	cxxtools::Regex checkLogname("^[aA-zZ]*$");
 	if(!checkLogname.match(logname))
-		throw std::domain_error(gettext("invalid logname"));
+		throw InvalidValue(gettext("invalid logname"));
 
 	if(!password)
-		throw std::domain_error(gettext("password not set"));
+		throw InvalidValue(gettext("password not set"));
 
 	Nexus& nx = Nexus::getInstance();
 	dbconn conn = nx.dbConnection();
 
 	unsigned int _id = getUidByLogname(logname,conn);
 	if(_id && _id != id)
-		throw std::domain_error(gettext("logname belongs to differen user"));
+		throw InvalidValue(gettext("logname belongs to differen user"));
 
 	if(dispname.empty())
 		dispname = logname;
 
 	_id = getUidByDispname(dispname,conn);
 	if(_id && _id != id)
-		throw std::domain_error(gettext("dispname belongs to differen user"));
+		throw InvalidValue(gettext("dispname belongs to differen user"));
 
 	_id = getUidByLogname(dispname,conn); // do not allow to set other users logname as dispname
 	if(_id && _id != id)
-		throw std::domain_error(gettext("dispname belongs to differen user"));
+		throw InvalidValue(gettext("dispname belongs to differen user"));
 
 	tntdb::Transaction trans_user(conn);
 	try
@@ -198,6 +199,10 @@ void User::dbCommit(const unsigned int _aid)
 		.setUnsigned("Ipw_id", password.getId())
 		.setUnsigned("Iid", id)
 		.execute();
+	}
+	catch(const Exception&)
+	{
+		throw;
 	}
 	catch(const std::exception& er_db)
 	{

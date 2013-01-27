@@ -30,7 +30,6 @@
 #define VARGA_BASECACHE_H
 
 #include <string>
-#include <stdexcept>
 #include <libintl.h>
 
 #include <cxxtools/cache.h>
@@ -41,6 +40,7 @@
 #include <cxxtools/loginit.h>
 #include <cxxtools/membar.h>
 
+#include <vagra/exception.h>
 #include <vagra/types.h>
 #include <vagra/nexus.h>
 #include <vagra/resultcache.h>
@@ -138,9 +138,9 @@ class BaseCache : private cxxtools::NonCopyable
 			}
 		}
 		if(!obj)
-			throw std::domain_error(gettext("failed to read any object"));
+			throw InvalidObject(gettext("failed to read any object"));
 		if(_aid != superuser && obj->getAuthLevel(_aid) < obj->getReadLevel())
-			throw std::domain_error(gettext("insufficient privileges"));
+			throw AccessDenied(gettext("insufficient privileges"));
 
 		return obj;
 	}

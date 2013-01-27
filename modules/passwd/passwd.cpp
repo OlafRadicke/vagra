@@ -26,7 +26,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdexcept>
 #include <libintl.h>
 #include <cxxtools/log.h>
 #include <cxxtools/loginit.h>
@@ -36,6 +35,7 @@
 #include <tntdb/transaction.h>
 #include <tntdb/row.h>
 
+#include <vagra/exception.h>
 #include <vagra/nexus.h>
 #include <vagra/cache.h>
 #include <vagra/utils.h>
@@ -62,12 +62,16 @@ Passwd::Passwd(const unsigned int _id, const unsigned int _aid)
 		q_pw.setUnsigned("Qid", _id);
 		tntdb::Row row_pw = q_pw.selectRow();
 		if(row_pw.empty())
-			throw std::domain_error(gettext("unknown passwd id"));
+			throw InvalidObject(gettext("unknown passwd id"));
 		if(!row_pw[0].isNull())
 			salt = row_pw[0].getString();
 		if(!row_pw[1].isNull())
 			hash = row_pw[1].getString();
 		id = _id;
+	}
+	catch(const Exception&)
+	{
+		throw;
 	}
 	catch(const std::exception& er_db)
 	{
@@ -99,7 +103,7 @@ void Passwd::Passwd::clear()
 void Passwd::genHash(const std::string& _passwd)
 {
 	if(_passwd.empty())
-		throw std::domain_error(gettext("empty passwords are not allowed"));
+		throw InvalidValue(gettext("empty passwords are not allowed"));
 
 	try
 	{
@@ -117,7 +121,7 @@ void Passwd::genHash(const std::string& _passwd)
 bool Passwd::verify(const std::string& _passwd) const
 {
 	if(_passwd.empty())
-		throw std::domain_error(gettext("empty passwords are not allowed"));
+		throw InvalidValue(gettext("empty passwords are not allowed"));
 	return hash == cxxtools::hmac<cxxtools::md5_hash<std::string> >(salt, _passwd);
 }
 
@@ -138,6 +142,10 @@ void Passwd::dbCommit(const unsigned int _aid)
 		trans_passwd.commit();
 		passwd_cache.clear(id);
 	}
+	catch(const Exception&)
+	{
+		throw;
+	}
 	catch(const std::exception& er_trans)
 	{
 		log_error(er_trans.what());
@@ -148,7 +156,7 @@ void Passwd::dbCommit(const unsigned int _aid)
 void Passwd::dbCommit(dbconn& conn, const unsigned int _aid)
 {
 	if(hash.empty() || salt.empty())
-		throw std::domain_error(gettext("need valid password hash"));
+		throw InvalidValue(gettext("need valid password hash"));
 	
 	try
 	{
@@ -160,6 +168,10 @@ void Passwd::dbCommit(dbconn& conn, const unsigned int _aid)
 			.setString("Ihash", hash)
 			.setUnsigned("Iid", id)
 			.execute();
+	}
+	catch(const Exception&)
+	{
+		throw;
 	}
 	catch(const std::exception& er_trans)
 	{

@@ -30,9 +30,9 @@
 #include <sstream>
 #include <iomanip>
 #include <string>
-#include <stdexcept>
 
 #include <vagra/date.h>
+#include <vagra/exception.h>
 
 namespace vagra
 {
@@ -80,7 +80,7 @@ const std::string date2dstr(const vdate& d)
 			s << gettext(" Dec ");
 			break;
 		default:
-			throw std::domain_error(gettext("invalid date"));
+			throw InvalidValue(gettext("invalid date"));
 			break;
 	}
 	s << d.getYear();

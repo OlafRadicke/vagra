@@ -27,7 +27,6 @@
  */
 
 #include <libintl.h>
-#include <stdexcept>
 #include <algorithm>
 
 #include <cxxtools/log.h>
@@ -37,6 +36,7 @@
 #include <tntdb/row.h>
 
 #include <vagra/context.h>
+#include <vagra/exception.h>
 #include <vagra/cache.h>
 #include <vagra/nexus.h>
 
@@ -124,7 +124,7 @@ void Context::dbCommit(const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 
 	try
 	{
@@ -134,7 +134,7 @@ void Context::dbCommit(const unsigned int _aid)
 		tntdb::Transaction trans_ctx(conn);
 
 		if(id != getContextIdByName(name))
-			throw std::domain_error(gettext("name already used by other context"));
+			throw InvalidValue(gettext("name already used by other context"));
 
 		if(id) // id!=null, update. otherwise insert
 		{
@@ -208,6 +208,10 @@ void Context::dbCommit(const unsigned int _aid)
 		Cache<Context>& ctx_cache = Cache<Context>::getInstance();
 		trans_ctx.commit();
 		ctx_cache.clear(id);
+	}
+	catch(const Exception&)
+	{
+		throw;
 	}
         catch(const std::exception& er_ctx)
         {
@@ -290,7 +294,7 @@ void Context::setName(const std::string& _name, const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 	name = _name;
 }
 
@@ -298,7 +302,7 @@ void Context::setReadLevel(const unsigned char _lev, const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 	read_level = _lev;
 }
 
@@ -306,7 +310,7 @@ void Context::setAddLevel(const unsigned char _lev, const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 	add_level = _lev;
 }
 
@@ -314,7 +318,7 @@ void Context::setWriteLevel(const unsigned char _lev, const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 	write_level = _lev;
 }
 
@@ -322,7 +326,7 @@ void Context::addUnprivileged(const unsigned int _uid, const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 
 	if(!std::binary_search(unprivileged.begin(), unprivileged.end(), _uid))
 		unprivileged.push_back(_uid);
@@ -332,7 +336,7 @@ void Context::addPrivileged(const unsigned int _uid, const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 
 	if(!std::binary_search(privileged.begin(), privileged.end(), _uid))
 		privileged.push_back(_uid);
@@ -342,7 +346,7 @@ void Context::addAdmin(const unsigned int _uid, const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 
 	if(!std::binary_search(admin.begin(), admin.end(), _uid))
 		admin.push_back(_uid);
@@ -352,7 +356,7 @@ void Context::removeUnprivileged(const unsigned int _uid, const unsigned int _ai
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 
 	std::vector<unsigned int>::iterator it = std::find(unprivileged.begin(), unprivileged.end(), _uid);
 	if(it != unprivileged.end())
@@ -363,7 +367,7 @@ void Context::removePrivileged(const unsigned int _uid, const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 
 	std::vector<unsigned int>::iterator it = std::find(privileged.begin(), privileged.end(), _uid);
 	if(it != privileged.end())
@@ -374,7 +378,7 @@ void Context::removeAdmin(const unsigned int _uid, const unsigned int _aid)
 {
 	if(!_aid || (_aid != superuser
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
-		throw std::domain_error(gettext("insufficient privileges"));
+		throw AccessDenied(gettext("insufficient privileges"));
 
 	std::vector<unsigned int>::iterator it = std::find(admin.begin(), admin.end(), _uid);
 	if(it != admin.end())

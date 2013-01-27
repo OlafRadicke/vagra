@@ -26,7 +26,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdexcept>
 #include <libintl.h>
 #include <cxxtools/log.h>
 #include <cxxtools/loginit.h>
@@ -34,6 +33,7 @@
 #include <tntdb/transaction.h>
 #include <tntdb/row.h>
 
+#include <vagra/exception.h>
 #include <vagra/nexus.h>
 #include <vagra/cache.h>
 
@@ -159,11 +159,11 @@ void Comment::setMail(const std::string& s)
 void Comment::dbCommit(const unsigned int _aid)
 {
 	if(author.empty())
-		throw std::domain_error(gettext("need an author"));
+		throw InvalidValue(gettext("need an author"));
 	if(text.empty())
-		throw std::domain_error(gettext("need text"));
+		throw InvalidValue(gettext("need text"));
 	if(!art_id)
-		throw std::domain_error(gettext("need valid article id"));
+		throw InvalidValue(gettext("need valid article id"));
 
 	Nexus& nx = Nexus::getInstance();
 	dbconn conn = nx.dbConnection();
@@ -183,6 +183,10 @@ void Comment::dbCommit(const unsigned int _aid)
 		.setString("Imail", mail)
 		.setUnsigned("Iid", id)
 		.execute();
+	}
+	catch(const Exception&)
+	{
+		throw;
 	}
 	catch(const std::exception& er_db)
 	{

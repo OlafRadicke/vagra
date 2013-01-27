@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 by Julian Wiesener
+ * Copyright (C) 2013 by Julian Wiesener
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,35 +26,47 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <libintl.h>
+#ifndef VARGA_EXCEPTION_H
+#define VARGA_EXCEPTION_H
 
-#include <vagra/exception.h>
-#include <vagra/user/auth.h>
-#include <vagra/passwd/passwd.h>
+#include <stdexcept>
+#include <string>
 
 namespace vagra
 {
 
-//begin Auth
+// Exceptions derived from vagra::Exception should appear on runtime and its what() 
+// output should be considered to display to endusers.
 
-Auth::Auth(const User& usr, const std::string& _passwd)
-	: uid(0)
+class Exception : public std::runtime_error
 {
-	if(usr.getPasswd().verify(_passwd))
-		uid = usr;
-	else
-		throw AccessDenied(gettext("password verification faild"));
-}
+    public:
+	Exception(const std::string& what_arg)
+		: std::runtime_error(what_arg) {}
+};
 
-Auth::Auth(const CachedUser& usr, const std::string& _passwd)
-	: uid(0)
+class AccessDenied : public Exception
 {
-	if(usr->getPasswd().verify(_passwd))
-		uid = usr;
-	else
-		throw AccessDenied(gettext("password verification faild"));
-}
+    public:
+	AccessDenied(const std::string& what_arg)
+		: Exception(what_arg) {}
+};
 
-// end Auth
+
+class InvalidObject : public Exception
+{
+    public:
+	InvalidObject(const std::string& what_arg)
+		: Exception(what_arg) {}
+};
+
+class InvalidValue : public Exception
+{
+    public:
+	InvalidValue(const std::string& what_arg)
+		: Exception(what_arg) {}
+};
 
 } //namespace vagra
+
+#endif // VARGA_EXCEPTION_H
