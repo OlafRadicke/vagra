@@ -77,6 +77,11 @@ void User::Init(const unsigned int _aid)
 		if(!row_user[2].isNull() && row_user[2].getUnsigned())
 			password = Passwd(row_user[2].getUnsigned(), _aid);
 	}
+	catch(const Exception&)
+	{
+		log_error(gettext("cannot read passwd"));
+		throw;
+	}
 	catch(const std::exception& er_user)
 	{
 		log_error(er_user.what());
