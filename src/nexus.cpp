@@ -42,7 +42,7 @@ namespace vagra
 Nexus::Nexus()
 {
 	std::string vagraConf;
-	const char* vagraConfEnv = ::getenv("VAGRA_CONF");
+	const char* vagraConfEnv = std::getenv("VAGRA_CONF");
 
 	if(vagraConfEnv)
 		vagraConf = vagraConfEnv;
