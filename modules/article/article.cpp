@@ -88,7 +88,7 @@ Article::Article(const unsigned int _id, const unsigned int _aid)
 		try
 		{
 			tntdb::Statement q_art_tags = conn.prepare(
-				"SELECT tag FROM tags WHERE art_id = :Qid");
+				"SELECT tag FROM tags WHERE art_id = :Qid ORDER BY tag");
 			q_art_tags.setUnsigned("Qid", id);
 			tntdb::Result res_art_tags = q_art_tags.select();
       			for(tntdb::Result::const_iterator it = res_art_tags.begin();
