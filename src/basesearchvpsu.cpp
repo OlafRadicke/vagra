@@ -32,7 +32,6 @@
 #include <tntdb/row.h>
 
 #include <cxxtools/log.h>
-#include <cxxtools/loginit.h>
 
 #include <vagra/basesearchvpsu.h>
 #include <vagra/types.h>

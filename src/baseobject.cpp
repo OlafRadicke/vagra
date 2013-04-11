@@ -29,7 +29,6 @@
 #include <libintl.h>
 
 #include <cxxtools/log.h>
-#include <cxxtools/loginit.h>
 #include <tntdb/row.h>
 
 #include <vagra/exception.h>

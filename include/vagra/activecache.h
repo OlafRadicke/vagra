@@ -35,7 +35,6 @@
 #include <cxxtools/condition.h>
 #include <cxxtools/thread.h>
 #include <cxxtools/log.h>
-#include <cxxtools/loginit.h>
 #include <cxxtools/membar.h>
 
 #include <vagra/exception.h>

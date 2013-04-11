@@ -37,7 +37,6 @@
 #include <cxxtools/smartptr.h>
 #include <cxxtools/mutex.h>
 #include <cxxtools/log.h>
-#include <cxxtools/loginit.h>
 #include <cxxtools/membar.h>
 
 #include <vagra/exception.h>

@@ -28,7 +28,6 @@
 
 #include <libintl.h>
 #include <cxxtools/log.h>
-#include <cxxtools/loginit.h>
 #include <cxxtools/md5.h>
 #include <cxxtools/hmac.h>
 #include <tntdb/result.h>

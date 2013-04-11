@@ -32,7 +32,6 @@
 #include <sstream>
 
 #include <cxxtools/log.h>
-#include <cxxtools/loginit.h>
 #include <tntdb/result.h>
 #include <tntdb/row.h>
 

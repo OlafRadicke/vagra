@@ -28,7 +28,6 @@
 
 #include <libintl.h>
 #include <cxxtools/log.h>
-#include <cxxtools/loginit.h>
 #include <cxxtools/regex.h>
 #include <tntdb/result.h>
 #include <tntdb/transaction.h>
