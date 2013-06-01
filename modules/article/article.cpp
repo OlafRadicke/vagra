@@ -64,7 +64,8 @@ Article::Article(const unsigned int _id, const unsigned int _aid)
   		try
 		{
 			tntdb::Statement q_art_cont = conn.prepare(
-				"SELECT title, headline, abstract, content, author"
+				"SELECT title, headline, abstract, content, author,"
+					"comments_allow, comments_view"
 					" FROM articles WHERE id = :Qid");
 			q_art_cont.setUnsigned("Qid", id);
 			tntdb::Row row_art_cont = q_art_cont.selectRow();
@@ -78,6 +79,10 @@ Article::Article(const unsigned int _id, const unsigned int _aid)
 				text = row_art_cont[3].getString();
 			if(!row_art_cont[4].isNull())
 				author = row_art_cont[4].getString();
+			if(!row_art_cont[5].isNull())
+				comments_allow = row_art_cont[5].getBool();
+			if(!row_art_cont[6].isNull())
+				comments_view = row_art_cont[6].getBool();
 			url = space2underscore(title);
 		}
 		catch(const std::exception& er_art)
@@ -183,6 +188,16 @@ const std::string& Article::getAuthor() const
 	        return author;
 }
 
+const bool Article::getCommentsAllow() const
+{
+	        return comments_allow;
+}
+
+const bool Article::getCommentsView() const
+{
+	        return comments_view;
+}
+
 const std::vector<std::string>& Article::getTags() const
 {
 	return tags;
@@ -286,13 +301,17 @@ void Article::dbCommit(const unsigned int _aid)
 	{
 		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
 
-		conn.prepare("UPDATE articles SET title = :Ititle, headline = :Ihead, abstract = :Iabstract,"
-			     " content = :Itext, author = :Iauthor  WHERE id = :Iid")
+		conn.prepare("UPDATE articles SET title = :Ititle, headline = :Ihead,"
+			" abstract = :Iabstract, content = :Itext, author = :Iauthor,"
+                        " comments_allow = :Icomments_allow, comments_view = Icomments_view"
+			" WHERE id = :Iid")
 		.setString("Ititle", title)
 		.setString("Ihead", head)
 		.setString("Iabstract", abstract)
 		.setString("Itext", text)
 		.setString("Iauthor", author)
+		.setBool("Icomments_allow", comments_allow)
+		.setBool("Icomments_view", comments_view)
 		.setUnsigned("Iid", id)
 		.execute();
 	}

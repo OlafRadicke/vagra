@@ -46,11 +46,14 @@ class Article: public BaseObject
 	std::string text;
 	std::string author;
 	std::string url;
+	bool comments_allow;
+	bool comments_view;
 	std::vector<std::string> tags;
 	std::vector<unsigned int> comment_ids;
 
     public:
-	Article() : BaseObject("articles") {}
+	Article() : BaseObject("articles"),
+		comments_allow(false), comments_view(false) {}
 	explicit Article(const std::string&, const unsigned int = 0);
 	explicit Article(const unsigned int, const unsigned int = 0);
 	operator bool() const;
@@ -63,6 +66,8 @@ class Article: public BaseObject
 	const std::string& getText() const;
 	const std::string& getAuthor() const;
 	const std::string& getUrl() const;
+	const bool getCommentsAllow() const;
+	const bool getCommentsView() const;
 	const std::vector<std::string>& getTags() const;
 	std::string getTagString() const;
 	std::vector<unsigned int> getCommentIds() const;
@@ -74,6 +79,8 @@ class Article: public BaseObject
 	void setText(const std::string&);
 	void setAuthor(const std::string&);
 	void setTags(const std::string&);
+	void setCommentsAllow(bool);
+	void setCommentsView(bool);
 
 	void dbCommit(const unsigned int = 0);
 
