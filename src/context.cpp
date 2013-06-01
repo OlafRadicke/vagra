@@ -60,7 +60,7 @@ Context::Context(const unsigned int _id, const unsigned int _aid)
                 dbconn conn = nx.dbConnection();
 
 		tntdb::Statement q_ctx = conn.prepare(
-                        "SELECT name, read_level, add_level, write_level"
+                        "SELECT name, url_base, read_level, add_level, write_level"
                                 " FROM context WHERE id = :Qid");
                 q_ctx.setUnsigned("Qid", _id);
                 tntdb::Row row_ctx = q_ctx.selectRow();
@@ -69,11 +69,13 @@ Context::Context(const unsigned int _id, const unsigned int _aid)
                 if(!row_ctx[0].isNull())
                         name = row_ctx[0].getString();
                 if(!row_ctx[1].isNull())
-                        read_level = row_ctx[1].getUnsigned();
+                        url_base = row_ctx[1].getString();
                 if(!row_ctx[2].isNull())
-                        add_level = row_ctx[2].getUnsigned();
+                        read_level = row_ctx[2].getUnsigned();
                 if(!row_ctx[3].isNull())
-                        write_level = row_ctx[3].getUnsigned();	
+                        add_level = row_ctx[3].getUnsigned();
+                if(!row_ctx[4].isNull())
+                        write_level = row_ctx[4].getUnsigned();	
 
 		q_ctx = conn.prepare(
                         "SELECT member FROM context_admins WHERE id = :Qid");
@@ -134,13 +136,17 @@ void Context::dbCommit(const unsigned int _aid)
 
 		if(id != getContextIdByName(name))
 			throw InvalidValue(gettext("name already used by other context"));
+		
+		if(url_base.empty())
+			url_base = name;
 
 		if(id) // id!=null, update. otherwise insert
 		{
-			conn.prepare("UPDATE context SET name = :Iname,"
+			conn.prepare("UPDATE context SET name = :Iname, url_base = :Iurl_base,"
        		         	" read_level = :Iread_level, add_level = :Iadd_level,"
 			        " write_level = :Iwrite_level WHERE id = :Iid")
 			.setString("Iname", name)
+			.setString("Iurl_base", url_base)
 			.setUnsigned("Iread_level", read_level)
 			.setUnsigned("Iadd_level", add_level)
 			.setUnsigned("Iwrite_level", write_level)
@@ -150,10 +156,11 @@ void Context::dbCommit(const unsigned int _aid)
 		else
 		{
 			tntdb::Statement ins_obj = conn.prepare("INSERT INTO context"
-				" (name, read_level, add_level, write_level)"
+				" (name, url_base, read_level, add_level, write_level)"
 	                	" VALUES (:Iname, :Iread_level, :Iadd_level, :Iwrite_level)"
 			        " RETURNING id");		// get id from fresh created obj
 			ins_obj.setString("Iname", name);
+			ins_obj.setString("Iurl_base", url_base);
 			ins_obj.setUnsigned("Iread_level", read_level);
 			ins_obj.setUnsigned("Iadd_level", add_level);
 			ins_obj.setUnsigned("Iwrite_level", write_level);
@@ -239,6 +246,11 @@ const std::string& Context::getName() const
 	return name;
 }
 
+const std::string& Context::getUrlBase() const
+{
+	return url_base;
+}
+
 const unsigned int Context::getId() const
 {
 	return id;
@@ -271,7 +283,7 @@ const std::vector<unsigned int>& Context::getPrivileged() const
 
 const std::vector<unsigned int>& Context::getAdmin() const
 {
-	return admin;;
+	return admin;
 }
 
 const unsigned char Context::getAuthLevel(const unsigned int _aid) const
@@ -295,6 +307,14 @@ void Context::setName(const std::string& _name, const unsigned int _aid)
 			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
 		throw AccessDenied(gettext("insufficient privileges"));
 	name = _name;
+}
+
+void Context::setUrlBase(const std::string& _url_base, const unsigned int _aid)
+{
+	if(!_aid || (_aid != superuser
+			&& !std::binary_search(admin.begin(), admin.end(), _aid)))
+		throw AccessDenied(gettext("insufficient privileges"));
+	url_base = _url_base;
 }
 
 void Context::setReadLevel(const unsigned char _lev, const unsigned int _aid)

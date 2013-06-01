@@ -205,6 +205,11 @@ const unsigned char BaseObject::getAuthLevel(const unsigned int _aid) const
         return _auth_level;
 }
 
+const std::string& BaseObject::getUrlBase() const
+{
+	return ctx->getUrlBase();
+}
+
 void BaseObject::setContext(const CachedContext& _ctx, const unsigned int _aid)
 {
 	if(!id) //new object if false

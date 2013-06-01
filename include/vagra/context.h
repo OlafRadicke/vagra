@@ -41,6 +41,7 @@ class Context
 {
 	unsigned int id;
 	std::string name;
+	std::string url_base;
 	std::vector<unsigned int> admin; // allowed to modify Context
 
 	std::vector<unsigned int> privileged;   // auth_level += 62
@@ -67,6 +68,7 @@ class Context
 	Context* operator->() { return this; }
 
 	const std::string& getName() const;
+	const std::string& getUrlBase() const;
 	const unsigned int getId() const;
 	const unsigned char getReadLevel() const;
 	const unsigned char getAddLevel() const;
@@ -80,6 +82,7 @@ class Context
 	const unsigned char getAuthLevel(const unsigned int = 0) const;
 
 	void setName(const std::string&, const unsigned int = 0);
+	void setUrlBase(const std::string&, const unsigned int = 0);
 	void setReadLevel(const unsigned char, const unsigned int = 0);
 	void setAddLevel(const unsigned char, const unsigned int = 0);
 	void setWriteLevel(const unsigned char, const unsigned int = 0);

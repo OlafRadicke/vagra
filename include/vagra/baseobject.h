@@ -91,6 +91,7 @@ class BaseObject
 	const unsigned char getWriteLevel() const;
 	const std::string& getTable() const; //used by Search.setType()
 	const unsigned char getAuthLevel(const unsigned int = 0) const;
+	virtual const std::string& getUrlBase() const;
 
 	const vdate& getCTime() const;
 	const vdate& getMTime() const;
