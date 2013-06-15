@@ -66,10 +66,12 @@ class User: public BaseObject
 	void setLogname(const std::string&);
 	void setDispname(const std::string&);
 	void setPasswd(const Passwd&);
+	void setPasswd(const std::string&);
 
 	std::string setRandomPasswd(const unsigned int = 0);
 
 	void dbCommit(const unsigned int = 0);
+	void passwdCommit(const unsigned int = 0);
 
 	static unsigned int getIdByName(const std::string&);
 };

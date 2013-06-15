@@ -148,6 +148,13 @@ void User::setPasswd(const Passwd& _pw)
 	password = _pw;
 }
 
+void User::setPasswd(const std::string& _pw)
+{
+	if(_pw.empty())
+		throw InvalidValue(gettext("empty password submitted"));
+	password.update(_pw);
+}
+
 std::string User::setRandomPasswd(const unsigned int _aid)
 {
 	password.setContext("passwd", _aid);
@@ -217,10 +224,8 @@ void User::dbCommit(const unsigned int _aid)
 	try
 	{
 		Cache<User>& user_cache = Cache<User>::getInstance();
-		Cache<Passwd>& passwd_cache = Cache<Passwd>::getInstance();
 		trans_user.commit();
 		user_cache.clear(id);
-		passwd_cache.clear(password.getId());
 
 	}
 	catch(const std::exception& er_trans)
@@ -228,6 +233,13 @@ void User::dbCommit(const unsigned int _aid)
 		log_error(er_trans.what());
 		throw std::domain_error(gettext("commit failed"));
 	}
+}
+
+void User::passwdCommit(const unsigned int _aid)
+{
+	Cache<User>& user_cache = Cache<User>::getInstance();
+	password.dbCommit(_aid);
+	user_cache.clear(id);
 }
 
 unsigned int User::getIdByName(const std::string& _name)

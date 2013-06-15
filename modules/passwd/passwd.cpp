@@ -36,7 +36,6 @@
 
 #include <vagra/exception.h>
 #include <vagra/nexus.h>
-#include <vagra/cache.h>
 #include <vagra/utils.h>
 
 #include <vagra/passwd/passwd.h>
@@ -137,9 +136,7 @@ void Passwd::dbCommit(const unsigned int _aid)
 
 		tntdb::Transaction trans_passwd(conn);
 		dbCommit(conn, _aid);
-		Cache<Passwd>& passwd_cache = Cache<Passwd>::getInstance();
 		trans_passwd.commit();
-		passwd_cache.clear(id);
 	}
 	catch(const Exception&)
 	{
