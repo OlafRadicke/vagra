@@ -232,7 +232,11 @@ void User::dbCommit(const unsigned int _aid)
 
 unsigned int User::getIdByName(const std::string& _name)
 {
-	return getUidByLogname(_name);
+	unsigned int _uid = getUidByLogname(_name);
+	if(!_uid)
+		throw InvalidValue(gettext("unknown user"));
+
+	return _uid;
 }
 
 // end User
