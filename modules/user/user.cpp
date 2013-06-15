@@ -158,6 +158,7 @@ void User::setPasswd(const std::string& _pw)
 std::string User::setRandomPasswd(const unsigned int _aid)
 {
 	password.setContext("passwd", _aid);
+	password.setOwner(id, _aid);
 	vagra::randomString randstr(12);
 	password.update(randstr);
 	return randstr;
