@@ -124,11 +124,9 @@ class BaseCache : private cxxtools::NonCopyable
 					lock.unlock();
 					obj = new_obj;
 				}
-				else
-				{
-					if(id != 0)
-						obj = get(0,_aid);
-				}
+			}
+			catch(const Exception& er_obj) {
+				throw;
 			}
 			catch(const std::exception& er_obj)
 			{
@@ -137,7 +135,7 @@ class BaseCache : private cxxtools::NonCopyable
 			}
 		}
 		if(!obj)
-			throw InvalidObject(gettext("failed to read any object"));
+			throw InvalidObject(gettext("failed to read object"));
 		if(_aid != superuser && obj->getAuthLevel(_aid) < obj->getReadLevel())
 			throw AccessDenied(gettext("insufficient privileges"));
 

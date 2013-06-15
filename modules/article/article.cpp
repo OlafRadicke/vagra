@@ -361,7 +361,11 @@ void Article::dbCommit(const unsigned int _aid)
 
 unsigned int Article::getIdByName(const std::string& _name)
 {
-	return getArticleIdByTitle(_name);
+unsigned int _aid = getArticleIdByTitle(_name);
+        if(!_aid)
+                throw InvalidObject(gettext("invalid article"));
+
+        return _aid;	
 }
 
 //end Article

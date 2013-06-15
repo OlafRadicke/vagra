@@ -38,6 +38,7 @@
 #include <cxxtools/log.h>
 #include <cxxtools/membar.h>
 
+#include <vagra/exception.h>
 #include <vagra/resultcache.h>
 
 namespace vagra
@@ -91,6 +92,10 @@ class IdMap : private cxxtools::NonCopyable
 					id_map.insert(std::pair<std::string,unsigned int>(_name, _id));
 				}
 				return _id;
+			}
+			catch(const Exception& er_idmap)
+			{
+				throw;
 			}
 			catch(const std::exception& er_idmap)
 			{

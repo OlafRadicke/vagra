@@ -234,7 +234,7 @@ unsigned int User::getIdByName(const std::string& _name)
 {
 	unsigned int _uid = getUidByLogname(_name);
 	if(!_uid)
-		throw InvalidValue(gettext("unknown user"));
+		throw InvalidObject(gettext("unknown user"));
 
 	return _uid;
 }
