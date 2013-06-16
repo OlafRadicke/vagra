@@ -278,6 +278,16 @@ void Article::setTags(const std::string& s)
 
 }
 
+void Article::setCommentsAllow(bool _comments_allow)
+{
+	comments_allow= _comments_allow;
+}
+
+void Article::setCommentsView(bool _comments_view)
+{
+	comments_view= _comments_view;
+}
+
 void Article::dbCommit(const unsigned int _aid)
 {
 	title = underscore2space(title);
@@ -303,7 +313,7 @@ void Article::dbCommit(const unsigned int _aid)
 
 		conn.prepare("UPDATE articles SET title = :Ititle, headline = :Ihead,"
 			" abstract = :Iabstract, content = :Itext, author = :Iauthor,"
-                        " comments_allow = :Icomments_allow, comments_view = Icomments_view"
+                        " comments_allow = :Icomments_allow, comments_view = :Icomments_view"
 			" WHERE id = :Iid")
 		.setString("Ititle", title)
 		.setString("Ihead", head)
