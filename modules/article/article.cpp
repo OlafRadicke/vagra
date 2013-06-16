@@ -40,6 +40,7 @@
 #include <vagra/idmap.h>
 
 #include <vagra/article/article.h>
+#include <vagra/user/cacheduser.h>
 
 namespace vagra
 {
@@ -64,8 +65,8 @@ Article::Article(const unsigned int _id, const unsigned int _aid)
   		try
 		{
 			tntdb::Statement q_art_cont = conn.prepare(
-				"SELECT title, headline, abstract, content, author,"
-					"comments_allow, comments_view"
+				"SELECT title, headline, abstract, content,"
+					" comments_allow, comments_view"
 					" FROM articles WHERE id = :Qid");
 			q_art_cont.setUnsigned("Qid", id);
 			tntdb::Row row_art_cont = q_art_cont.selectRow();
@@ -78,11 +79,9 @@ Article::Article(const unsigned int _id, const unsigned int _aid)
 			if(!row_art_cont[3].isNull())
 				text = row_art_cont[3].getString();
 			if(!row_art_cont[4].isNull())
-				author = row_art_cont[4].getString();
+				comments_allow = row_art_cont[4].getBool();
 			if(!row_art_cont[5].isNull())
-				comments_allow = row_art_cont[5].getBool();
-			if(!row_art_cont[6].isNull())
-				comments_view = row_art_cont[6].getBool();
+				comments_view = row_art_cont[5].getBool();
 			url = space2underscore(title);
 		}
 		catch(const std::exception& er_art)
@@ -130,6 +129,7 @@ Article::Article(const unsigned int _id, const unsigned int _aid)
 			log_error(er_comm.what());
 			throw;
 		}
+		author = CachedUser(this->getOwner(), _aid)->getDispname();
   	}
 	catch(const std::exception& er_db)
 	{
@@ -249,11 +249,6 @@ void Article::setText(const std::string& s)
 	text = s;
 }
 
-void Article::setAuthor(const std::string& s)
-{
-	author = s;
-}
-
 void Article::setTags(const std::string& s)
 {
 	tags.clear();
@@ -312,14 +307,13 @@ void Article::dbCommit(const unsigned int _aid)
 		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
 
 		conn.prepare("UPDATE articles SET title = :Ititle, headline = :Ihead,"
-			" abstract = :Iabstract, content = :Itext, author = :Iauthor,"
+			" abstract = :Iabstract, content = :Itext,"
                         " comments_allow = :Icomments_allow, comments_view = :Icomments_view"
 			" WHERE id = :Iid")
 		.setString("Ititle", title)
 		.setString("Ihead", head)
 		.setString("Iabstract", abstract)
 		.setString("Itext", text)
-		.setString("Iauthor", author)
 		.setBool("Icomments_allow", comments_allow)
 		.setBool("Icomments_view", comments_view)
 		.setUnsigned("Iid", id)

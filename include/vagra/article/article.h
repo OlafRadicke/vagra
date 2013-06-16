@@ -77,7 +77,6 @@ class Article: public BaseObject
 	void setHead(const std::string&);
 	void setAbstract(const std::string&);
 	void setText(const std::string&);
-	void setAuthor(const std::string&);
 	void setTags(const std::string&);
 	void setCommentsAllow(bool);
 	void setCommentsView(bool);
