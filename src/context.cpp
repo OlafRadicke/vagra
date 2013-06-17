@@ -157,7 +157,7 @@ void Context::dbCommit(const unsigned int _aid)
 		{
 			tntdb::Statement ins_obj = conn.prepare("INSERT INTO context"
 				" (name, url_base, read_level, add_level, write_level)"
-	                	" VALUES (:Iname, :Iread_level, :Iadd_level, :Iwrite_level)"
+	                	" VALUES (:Iname, :Iurl_base, :Iread_level, :Iadd_level, :Iwrite_level)"
 			        " RETURNING id");		// get id from fresh created obj
 			ins_obj.setString("Iname", name);
 			ins_obj.setString("Iurl_base", url_base);
