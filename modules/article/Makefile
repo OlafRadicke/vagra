@@ -1,9 +1,12 @@
 include ../../Makefile.inc
 
 CXXFLAGS  = -I../../include $(VAGRA_CXXFLAGS)
+OBJECTS     = article.o cachedarticle.o articlesearch.o tagsum.o
 
-all: article.o cachedarticle.o articlesearch.o tagsum.o
-	cp *.o ../../
+all: article.a
+
+article.a: $(OBJECTS)
+	$(AR) -rcs $@ $(OBJECTS)
 
 clean:
-	rm -f *.so *.o
+	-rm -f *.o *.a

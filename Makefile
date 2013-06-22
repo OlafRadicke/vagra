@@ -2,16 +2,18 @@ include Makefile.inc
 
 all: libvagra.so
 
-libvagra.so: vagra_modules
-	${CXX} -o $@ *.o ${LDFLAGS}
+SUBDIRS = src modules
 
-vagra:
-	cd src && $(MAKE)
+.PHONY: vagra_objects $(SUBDIRS)
 
-vagra_modules: vagra
-	for d in $(MODULES); do cd ./modules/$$d && $(MAKE) || exit 1; cd -; done
+vagra_objects: $(SUBDIRS)
+
+$(SUBDIRS):
+	$(MAKE) -C $@
+
+libvagra.so: vagra_objects 
+	${CXX} -Wl,--whole-archive -o $@ src/vagra.a $$(for module in $(MODULES); do echo modules/$${module}/$${module}.a; done) -Wl,--no-whole-archive ${LDFLAGS}
 
 clean:
-	rm -f *.so *.o
-	cd src && $(MAKE) clean
-	for d in $(MODULES); do cd ./modules/$$d && $(MAKE) clean; cd -; done
+	rm -f libvagra.so
+	-for d in $(SUBDIRS); do cd $$d && $(MAKE) clean; cd -; done

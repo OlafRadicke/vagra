@@ -1,9 +1,12 @@
 include ../../Makefile.inc
 
 CXXFLAGS  = -I../../include $(VAGRA_CXXFLAGS)
+OBJECTS     = passwd.o
 
-all: passwd.o
-	cp *.o ../../
+all: passwd.a
+
+passwd.a: $(OBJECTS)
+	$(AR) -rcs $@ $(OBJECTS)
 
 clean:
-	rm -f *.so *.o
+	-rm -f *.o *.a
