@@ -47,8 +47,8 @@ log_define("vagra")
 
 //begin Passwd
 
-Passwd::Passwd(const unsigned int _id, const unsigned int _aid)
-	: BaseObject("vpasswd", _id, _aid) //call baseconstructor(db_tablename,id,authId)
+Passwd::Passwd(const unsigned int _id, const BaseAuth& _auth)
+	: BaseObject("vpasswd", _id, _auth) //call baseconstructor(db_tablename,id,authId)
 {
 	try
 	{
@@ -78,8 +78,8 @@ Passwd::Passwd(const unsigned int _id, const unsigned int _aid)
 	}
 }
 
-Passwd::Passwd(const std::string& _passwd, const unsigned int _aid)
-	: BaseObject("vpasswd", _aid)
+Passwd::Passwd(const std::string& _passwd, const BaseAuth& _auth)
+	: BaseObject("vpasswd", _auth)
 {
 	genHash(_passwd);
 }
@@ -128,14 +128,14 @@ void Passwd::update(const std::string& _passwd)
 	genHash(_passwd);
 }
 
-void Passwd::dbCommit(const unsigned int _aid)
+void Passwd::dbCommit(const BaseAuth& _auth)
 {
 	try{
 		Nexus& nx = Nexus::getInstance();
 		dbconn conn = nx.dbConnection();
 
 		tntdb::Transaction trans_passwd(conn);
-		dbCommit(conn, _aid);
+		dbCommit(conn, _auth);
 		trans_passwd.commit();
 	}
 	catch(const Exception&)
@@ -149,14 +149,14 @@ void Passwd::dbCommit(const unsigned int _aid)
 	}
 }
 
-void Passwd::dbCommit(dbconn& conn, const unsigned int _aid)
+void Passwd::dbCommit(dbconn& conn, const BaseAuth& _auth)
 {
 	if(hash.empty() || salt.empty())
 		throw InvalidValue(gettext("need valid password hash"));
 	
 	try
 	{
-		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
+		dbCommitBase(conn, _auth); //init base, INSERT if id==0, otherwise UPDATE
 
 		conn.prepare("UPDATE vpasswd SET salt = :Isalt, hash = :Ihash"
 				" WHERE id = :Iid")

@@ -41,8 +41,8 @@ class CachedArticle
 	Cache<Article>::SharedObject art;
 
     public:
-	explicit CachedArticle(const unsigned int, const unsigned int = 0);
-	explicit CachedArticle(const std::string&, const unsigned int = 0);
+	explicit CachedArticle(const unsigned int, const BaseAuth& = BaseAuth());
+	explicit CachedArticle(const std::string&, const BaseAuth& = BaseAuth());
 	operator bool() const;
 
 	const Cache<Article>::SharedObject& operator->() const { return art; }

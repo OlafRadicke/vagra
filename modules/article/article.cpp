@@ -49,14 +49,14 @@ log_define("vagra")
 
 //begin Article
 
-Article::Article(const std::string& art_title, const unsigned int _aid)
+Article::Article(const std::string& art_title, const BaseAuth& _auth)
 	: BaseObject("articles")
 {
-	*this = Article(Article::getIdByName(art_title), _aid);
+	*this = Article(Article::getIdByName(art_title), _auth);
 }
 
-Article::Article(const unsigned int _id, const unsigned int _aid)
-	: BaseObject("articles", _id, _aid) //call baseconstructor(db_tablename,objId,_authId)
+Article::Article(const unsigned int _id, const BaseAuth& _auth)
+	: BaseObject("articles", _id, _auth) //call baseconstructor(db_tablename,objId,_authId)
 {
 	try
 	{
@@ -129,7 +129,7 @@ Article::Article(const unsigned int _id, const unsigned int _aid)
 			log_error(er_comm.what());
 			throw;
 		}
-		author = CachedUser(this->getOwner(), _aid)->getDispname();
+		author = CachedUser(this->getOwner(), _auth)->getDispname();
   	}
 	catch(const std::exception& er_db)
 	{
@@ -283,7 +283,7 @@ void Article::setCommentsView(bool _comments_view)
 	comments_view= _comments_view;
 }
 
-void Article::dbCommit(const unsigned int _aid)
+void Article::dbCommit(const BaseAuth& _auth)
 {
 	title = underscore2space(title);
 
@@ -304,7 +304,7 @@ void Article::dbCommit(const unsigned int _aid)
 
 	try
 	{
-		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
+		dbCommitBase(conn, _auth); //init base, INSERT if id==0, otherwise UPDATE
 
 		conn.prepare("UPDATE articles SET title = :Ititle, headline = :Ihead,"
 			" abstract = :Iabstract, content = :Itext,"
@@ -365,7 +365,7 @@ void Article::dbCommit(const unsigned int _aid)
 
 unsigned int Article::getIdByName(const std::string& _name)
 {
-unsigned int _aid = getArticleIdByTitle(_name);
+	unsigned int _aid = getArticleIdByTitle(_name);
         if(!_aid)
                 throw InvalidObject(gettext("invalid article"));
 

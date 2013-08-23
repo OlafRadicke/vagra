@@ -38,19 +38,17 @@ namespace vagra
 //begin Auth
 
 Auth::Auth(const User& usr, const std::string& _passwd)
-	: uid(0)
 {
 	if(usr.getPasswd().verify(_passwd))
-		uid = usr;
+		aid = usr;
 	else
 		throw AccessDenied(gettext("password verification faild"));
 }
 
 Auth::Auth(const CachedUser& usr, const std::string& _passwd)
-	: uid(0)
 {
 	if(usr->getPasswd().verify(_passwd))
-		uid = usr;
+		aid = usr;
 	else
 		throw AccessDenied(gettext("password verification faild"));
 }

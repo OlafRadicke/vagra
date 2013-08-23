@@ -42,6 +42,7 @@
 #include <vagra/exception.h>
 #include <vagra/types.h>
 #include <vagra/nexus.h>
+#include <vagra/baseauth.h>
 #include <vagra/resultcache.h>
 
 namespace vagra
@@ -99,7 +100,7 @@ class BaseCache : private cxxtools::NonCopyable
 		return cache_inst.getMaxElements();
 	}
 
-	SharedObject get(const unsigned int id, const unsigned int _aid = 0) //assume 0 as anonymous
+	SharedObject get(const unsigned int id, const BaseAuth& _auth = BaseAuth())
 	{
 		SharedObject obj;
 		std::pair<bool, SharedObject> rdata;
@@ -116,7 +117,7 @@ class BaseCache : private cxxtools::NonCopyable
 		{
 			try
 			{
-				SharedObject new_obj( new Object(id,superuser)); // cache reads always as superuser
+				SharedObject new_obj( new Object(id, SuperUser())); // cache reads always as superuser
 				if(*new_obj)
 				{
 					cxxtools::MutexLock lock(mutex);
@@ -136,7 +137,7 @@ class BaseCache : private cxxtools::NonCopyable
 		}
 		if(!obj)
 			throw InvalidObject(gettext("failed to read object"));
-		if(_aid != superuser && obj->getAuthLevel(_aid) < obj->getReadLevel())
+		if(_auth != SuperUser() && obj->getAuthLevel(_auth) < obj->getReadLevel())
 			throw AccessDenied(gettext("insufficient privileges"));
 
 		return obj;

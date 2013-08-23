@@ -31,10 +31,10 @@
 namespace vagra
 {
 
-CachedComment::CachedComment(const unsigned int comm_id, const unsigned int _aid)
+CachedComment::CachedComment(const unsigned int comm_id, const BaseAuth& _auth)
 {
 	Cache<Comment>& comm_cache = Cache<Comment>::getInstance();
-	comment = comm_cache.get(comm_id, _aid);
+	comment = comm_cache.get(comm_id, _auth);
 }
 
 CachedComment::operator bool() const

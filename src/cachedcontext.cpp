@@ -32,18 +32,18 @@
 namespace vagra
 {
 
-CachedContext::CachedContext(const unsigned int _id, const unsigned int _aid)
+CachedContext::CachedContext(const unsigned int _id, const BaseAuth& _auth)
 {
 	Cache<Context>& ctx_cache = Cache<Context>::getInstance();
-	ctx = ctx_cache.get(_id, superuser); // Cache reads always as superuser
+	ctx = ctx_cache.get(_id, SuperUser()); // Cache reads always as SuperUser
 }
 
-CachedContext::CachedContext(const std::string _name, const unsigned int _aid)
+CachedContext::CachedContext(const std::string _name, const BaseAuth& _auth)
 {
 	Cache<Context>& ctx_cache = Cache<Context>::getInstance();
 	IdMap<Context>& ctx_idmap = IdMap<Context>::getInstance();
 
-	ctx = ctx_cache.get(ctx_idmap.getIdByName(_name), superuser);
+	ctx = ctx_cache.get(ctx_idmap.getIdByName(_name), SuperUser());
 }
 
 CachedContext::operator bool() const

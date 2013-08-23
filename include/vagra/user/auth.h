@@ -31,25 +31,20 @@
 
 #include <string>
 
+#include <vagra/baseauth.h>
+
 #include <vagra/user/user.h>
 #include <vagra/user/cacheduser.h>
 
 namespace vagra
 {
 
-class BaseObject;
-
-class Auth
+class Auth: public BaseAuth
 {
-	unsigned int uid;
-
     public:
-	Auth() :
-       		uid(0) {};
+	Auth() {}
 	Auth(const User&, const std::string&);
 	Auth(const CachedUser&, const std::string&);
-
-	operator unsigned int() const { return uid; }
 };
 
 } //namespace vagra

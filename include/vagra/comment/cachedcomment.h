@@ -41,7 +41,7 @@ class CachedComment
 	Cache<Comment>::SharedObject comment;
 
     public:
-	explicit CachedComment(const unsigned int, const unsigned int = 0);
+	explicit CachedComment(const unsigned int, const BaseAuth& = BaseAuth());
 	operator bool() const;
 
 	const Cache<Comment>::SharedObject& operator->() const { return comment; }

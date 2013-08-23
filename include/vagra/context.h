@@ -33,6 +33,7 @@
 #include <vector>
 
 #include <vagra/types.h>
+#include <vagra/baseauth.h>
 
 namespace vagra
 {
@@ -59,8 +60,8 @@ class Context
 		add_level(126),
 		write_level(126) {}
 
-	Context(const std::string&, const unsigned int = 0);
-	Context(const unsigned int, const unsigned int = 0);
+	Context(const std::string&, const BaseAuth& = BaseAuth());
+	Context(const unsigned int, const BaseAuth& = BaseAuth());
 
 	operator bool() const;
 	operator int() const;
@@ -79,22 +80,22 @@ class Context
 
 	inline const std::string& getTable() const //used by Search.setType()
 	{ static std::string tablename("context"); return tablename; }
-	const unsigned char getAuthLevel(const unsigned int = 0) const;
+	const unsigned char getAuthLevel(const BaseAuth& = BaseAuth()) const;
 
-	void setName(const std::string&, const unsigned int = 0);
-	void setUrlBase(const std::string&, const unsigned int = 0);
-	void setReadLevel(const unsigned char, const unsigned int = 0);
-	void setAddLevel(const unsigned char, const unsigned int = 0);
-	void setWriteLevel(const unsigned char, const unsigned int = 0);
+	void setName(const std::string&, const BaseAuth& = BaseAuth());
+	void setUrlBase(const std::string&, const BaseAuth& = BaseAuth());
+	void setReadLevel(const unsigned char, const BaseAuth& = BaseAuth());
+	void setAddLevel(const unsigned char, const BaseAuth& = BaseAuth());
+	void setWriteLevel(const unsigned char, const BaseAuth& = BaseAuth());
 
-	void addUnprivileged(const unsigned int, const unsigned int = 0);
-	void addPrivileged(const unsigned int, const unsigned int = 0);
-	void addAdmin(const unsigned int, const unsigned int = 0);
-	void removeUnprivileged(const unsigned int, const unsigned int = 0);
-	void removePrivileged(const unsigned int, const unsigned int = 0);
-	void removeAdmin(const unsigned int, const unsigned int = 0);
+	void addUnprivileged(const unsigned int, const BaseAuth& = BaseAuth());
+	void addPrivileged(const unsigned int, const BaseAuth& = BaseAuth());
+	void addAdmin(const unsigned int, const BaseAuth& = BaseAuth());
+	void removeUnprivileged(const unsigned int, const BaseAuth& = BaseAuth());
+	void removePrivileged(const unsigned int, const BaseAuth& = BaseAuth());
+	void removeAdmin(const unsigned int, const BaseAuth& = BaseAuth());
 
-	void dbCommit(const unsigned int = 0);
+	void dbCommit(const BaseAuth& = BaseAuth());
 
 	static unsigned int getIdByName(const std::string&);
 };

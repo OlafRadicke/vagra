@@ -32,6 +32,7 @@
 #include <string>
 #include <vector>
 
+#include <vagra/baseauth.h>
 #include <vagra/types.h>
 #include <vagra/date.h>
 #include <vagra/cachedcontext.h>
@@ -49,11 +50,11 @@ class BaseObject
 
 	BaseObject() : ctx(0) {} //need tablename
 
-	virtual void dbCommit(const unsigned int = 0) = 0;
+	virtual void dbCommit(const BaseAuth& = BaseAuth()) = 0;
 	virtual void clear() = 0;
 
     protected:
-	BaseObject(const std::string& _tablename) :
+	explicit BaseObject(const std::string& _tablename) :
 		ctx(0), oid(0),
 		read_level(126),
 		add_level(126),
@@ -63,7 +64,7 @@ class BaseObject
 	/* call BaseObject("tablename", objId, authId), from derived initializer
 	 * if authId is obmitted anonymous user 0 will be used
 	 */
-	BaseObject(const std::string&, const unsigned int, const unsigned int = 0);
+	BaseObject(const std::string&, const unsigned int, const BaseAuth& = BaseAuth());
 
 	unsigned int id; //Object ID
 	std::string tablename; //Database tablename
@@ -75,7 +76,7 @@ class BaseObject
 	 * derived dbCommit, thus there won't be any baseobject
 	 * entries in the database if derived dbCommit throws
 	 */
-	void dbCommitBase(dbconn&, const unsigned int = 0);
+	void dbCommitBase(dbconn&, const BaseAuth& = BaseAuth());
 	void clearBase();
 
     public:
@@ -90,7 +91,7 @@ class BaseObject
 	const unsigned char getAddLevel() const;
 	const unsigned char getWriteLevel() const;
 	const std::string& getTable() const; //used by Search.setType()
-	const unsigned char getAuthLevel(const unsigned int = 0) const;
+	const unsigned char getAuthLevel(const BaseAuth& = BaseAuth()) const;
 	virtual const std::string& getUrlBase() const;
 
 	const vdate& getCTime() const;
@@ -99,16 +100,16 @@ class BaseObject
 	/* setContext always set all permissons to the Context defaults
 	 * and also sets the owner to AuthId. Remember that dbCommit might
 	 * become impossible if you set the owner != AuthId */
-	void setContext(const CachedContext&, const unsigned int = 0);
-	void setContext(const std::string&, const unsigned int = 0);
-	void setContext(const unsigned int, const unsigned int = 0);
+	void setContext(const CachedContext&, const BaseAuth& = BaseAuth());
+	void setContext(const std::string&, const BaseAuth& = BaseAuth());
+	void setContext(const unsigned int, const BaseAuth& = BaseAuth());
 
-	void setOwner(const unsigned int, const unsigned int = 0);
-	void setReadLevel(const unsigned char, const unsigned int = 0);
-	void setAddLevel(const unsigned char, const unsigned int = 0);
-	void setWriteLevel(const unsigned char, const unsigned int = 0);
+	void setOwner(const unsigned int, const BaseAuth& = BaseAuth());
+	void setReadLevel(const unsigned char, const BaseAuth& = BaseAuth());
+	void setAddLevel(const unsigned char, const BaseAuth& = BaseAuth());
+	void setWriteLevel(const unsigned char, const BaseAuth& = BaseAuth());
 };
 
 } //namespace vagra
 
-#endif // VAGRA_VARGA_BASEOBJECT_H
+#endif // VAGRA_BASEOBJECT_H

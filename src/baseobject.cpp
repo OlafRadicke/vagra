@@ -42,7 +42,7 @@ log_define("vagra")
 
 //begin BaseObject
 
-BaseObject::BaseObject(const std::string& _tablename, const unsigned int _id, const unsigned int _aid)
+BaseObject::BaseObject(const std::string& _tablename, const unsigned int _id, const BaseAuth& _auth)
 	: ctx(0), oid(0), read_level(126), add_level(126), write_level(126), id(_id), tablename(_tablename)
 {
         try
@@ -81,7 +81,7 @@ BaseObject::BaseObject(const std::string& _tablename, const unsigned int _id, co
                 log_error(er_obj.what());
                 throw std::domain_error(gettext("could not init BaseObject"));
         }
-	if(getAuthLevel(_aid) < read_level)
+	if(getAuthLevel(_auth) < read_level)
 		throw AccessDenied(gettext("insufficient privileges"));
 }
 
@@ -90,11 +90,11 @@ BaseObject::operator bool() const
 	return id;
 }
 
-void BaseObject::dbCommitBase(dbconn& conn, const unsigned int _aid)
+void BaseObject::dbCommitBase(dbconn& conn, const BaseAuth& _auth)
 {
 	if(id) // id!=null, update. otherwise insert
 	{
-		if(getAuthLevel(_aid) < write_level)
+		if(getAuthLevel(_auth) < write_level)
 			throw AccessDenied(gettext("insufficient privileges"));
 
 		conn.prepare("UPDATE " + tablename + " SET oid = :Ioid, cid = :Icid,"
@@ -111,11 +111,11 @@ void BaseObject::dbCommitBase(dbconn& conn, const unsigned int _aid)
 	else
 	{
 		//if authId doesn't reach write_level, adding new objects might still be desired
-		if(getAuthLevel(_aid) < write_level && getAuthLevel(_aid) < add_level)
+		if(getAuthLevel(_auth) < write_level && getAuthLevel(_auth) < add_level)
 			throw AccessDenied(gettext("insufficient privileges"));
 
 		if(!oid)
-			oid = superuser;
+			oid = SuperUser();
 
 		tntdb::Statement ins_obj = conn.prepare("INSERT INTO "
 			+ tablename + " (oid, cid, read_level, add_level, write_level)"
@@ -190,17 +190,17 @@ const std::string& BaseObject::getTable() const
 	return tablename;
 }
 
-const unsigned char BaseObject::getAuthLevel(const unsigned int _aid) const
+const unsigned char BaseObject::getAuthLevel(const BaseAuth& _auth) const
 {
         unsigned char _auth_level(2);
 
-        if(_aid) {
+        if(_auth) {
                 _auth_level += 6;
-                if(_aid == oid)
+                if(_auth == oid)
                         _auth_level += 30;
-                if(_aid == superuser)
+                if(_auth == SuperUser())
                         _auth_level += 126;
-		_auth_level += ctx->getAuthLevel(_aid);
+		_auth_level += ctx->getAuthLevel(_auth);
         }
         return _auth_level;
 }
@@ -210,52 +210,52 @@ const std::string& BaseObject::getUrlBase() const
 	return ctx->getUrlBase();
 }
 
-void BaseObject::setContext(const CachedContext& _ctx, const unsigned int _aid)
+void BaseObject::setContext(const CachedContext& _ctx, const BaseAuth& _auth)
 {
 	if(!id) //new object if false
 	{
-		if(_ctx->getAuthLevel(_aid) < _ctx->getAddLevel()
-			&& _ctx->getAddLevel() > 2 && _aid != superuser)
+		if(_ctx->getAuthLevel(_auth) < _ctx->getAddLevel()
+			&& _ctx->getAddLevel() > 2 && _auth != SuperUser())
 			throw AccessDenied(gettext("insufficient privileges on target context"));
 	}
 	else 
 	{
-		if(getAuthLevel(_aid) < write_level)
+		if(getAuthLevel(_auth) < write_level)
 			throw AccessDenied(gettext("insufficient privileges"));
 
-		if(_ctx->getAuthLevel(_aid) < _ctx->getAddLevel()
-			&& _ctx->getAddLevel() > 2 && _aid != superuser)
+		if(_ctx->getAuthLevel(_auth) < _ctx->getAddLevel()
+			&& _ctx->getAddLevel() > 2 && _auth != SuperUser())
 			throw AccessDenied(gettext("insufficient privileges on target context"));
 	}
 	ctx = _ctx;
-	oid = _aid;
+	oid = _auth;
 	read_level = ctx->getReadLevel();
 	add_level = ctx->getAddLevel();
 	write_level = ctx->getWriteLevel();
 }
 
-void BaseObject::setContext(const std::string& _name, const unsigned int _aid)
+void BaseObject::setContext(const std::string& _name, const BaseAuth& _auth)
 {
 	CachedContext _ctx(_name);
-	setContext(_ctx, _aid);
+	setContext(_ctx, _auth);
 }
 
-void BaseObject::setContext(const unsigned int _cid, const unsigned int _aid)
+void BaseObject::setContext(const unsigned int _cid, const BaseAuth& _auth)
 {
 	CachedContext _ctx(_cid);
-	setContext(_ctx, _aid);
+	setContext(_ctx, _auth);
 }
 
-void BaseObject::setOwner(const unsigned int _oid, const unsigned int _aid)
+void BaseObject::setOwner(const unsigned int _oid, const BaseAuth& _auth)
 {	
-	if(getAuthLevel(_aid) < write_level)
+	if(getAuthLevel(_auth) < write_level)
 		throw AccessDenied(gettext("insufficient privileges"));
 	oid = _oid;
 }
 
-void BaseObject::setReadLevel(const unsigned char _lev, const unsigned int _aid)
+void BaseObject::setReadLevel(const unsigned char _lev, const BaseAuth& _auth)
 {
-	unsigned char _priv = getAuthLevel(_aid);
+	unsigned char _priv = getAuthLevel(_auth);
 	if(_priv < write_level)
 		throw AccessDenied(gettext("insufficient privileges"));
 	if(_lev > 62 && _lev > _priv)
@@ -265,9 +265,9 @@ void BaseObject::setReadLevel(const unsigned char _lev, const unsigned int _aid)
 	read_level = _lev;
 }
 
-void BaseObject::setAddLevel(const unsigned char _lev, const unsigned int _aid)
+void BaseObject::setAddLevel(const unsigned char _lev, const BaseAuth& _auth)
 {
-	unsigned char _priv = getAuthLevel(_aid);
+	unsigned char _priv = getAuthLevel(_auth);
 	if(_priv < write_level)
 		throw AccessDenied(gettext("insufficient privileges"));
 	if(_lev > 62 && _lev > _priv)
@@ -277,9 +277,9 @@ void BaseObject::setAddLevel(const unsigned char _lev, const unsigned int _aid)
 	add_level = _lev;
 }
 
-void BaseObject::setWriteLevel(const unsigned char _lev, const unsigned int _aid)
+void BaseObject::setWriteLevel(const unsigned char _lev, const BaseAuth& _auth)
 {
-	unsigned char _priv = getAuthLevel(_aid);
+	unsigned char _priv = getAuthLevel(_auth);
 	if(_priv < write_level)
 		throw AccessDenied(gettext("insufficient privileges"));
 	if(_lev > 62 && _lev > _priv)

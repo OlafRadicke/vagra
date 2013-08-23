@@ -47,19 +47,19 @@ log_define("vagra")
 
 //begin User
 
-User::User(const unsigned int _id, const unsigned int _aid)
-	: BaseObject("vuser", _id, _aid) //call baseconstructor(db_tablename,id,authId)
+User::User(const unsigned int _id, const BaseAuth& _auth)
+	: BaseObject("vuser", _id, _auth) //call baseconstructor(db_tablename,id,authId)
 {
-	Init(_aid);
+	Init(_auth);
 }
 
-User::User(const std::string& _name, const unsigned int _aid)
-	: BaseObject("vuser", getIdByName(_name), _aid)
+User::User(const std::string& _name, const BaseAuth& _auth)
+	: BaseObject("vuser", getIdByName(_name), _auth)
 {
-	Init(_aid);
+	Init(_auth);
 }
 
-void User::Init(const unsigned int _aid)
+void User::Init(const BaseAuth& _auth)
 {
 	try
 	{
@@ -74,7 +74,7 @@ void User::Init(const unsigned int _aid)
 		if(!row_user[1].isNull())
 			dispname = row_user[1].getString();
 		if(!row_user[2].isNull() && row_user[2].getUnsigned())
-			password = Passwd(row_user[2].getUnsigned(), _aid);
+			password = Passwd(row_user[2].getUnsigned(), _auth);
 	}
 	catch(const Exception&)
 	{
@@ -155,16 +155,16 @@ void User::setPasswd(const std::string& _pw)
 	password.update(_pw);
 }
 
-std::string User::setRandomPasswd(const unsigned int _aid)
+std::string User::setRandomPasswd(const BaseAuth& _auth)
 {
-	password.setContext("passwd", _aid);
-	password.setOwner(id, _aid);
+	password.setContext("passwd", _auth);
+	password.setOwner(id, _auth);
 	vagra::randomString randstr(12);
 	password.update(randstr);
 	return randstr;
 }
 
-void User::dbCommit(const unsigned int _aid)
+void User::dbCommit(const BaseAuth& _auth)
 {
 	if(logname.empty())
 		throw InvalidValue(gettext("need a login name name"));
@@ -199,10 +199,10 @@ void User::dbCommit(const unsigned int _aid)
 	tntdb::Transaction trans_user(conn);
 	try
 	{
-		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
+		dbCommitBase(conn, _auth); //init base, INSERT if id==0, otherwise UPDATE
 		if(!password.getOwner())
-			password.setOwner(id, _aid);
-		password.dbCommit(conn, _aid);
+			password.setOwner(id, _auth);
+		password.dbCommit(conn, _auth);
 
 		conn.prepare("UPDATE vuser SET logname = :Ilogname, dispname = :Idispname,"
 			" pw_id = :Ipw_id WHERE id = :Iid")
@@ -236,10 +236,10 @@ void User::dbCommit(const unsigned int _aid)
 	}
 }
 
-void User::passwdCommit(const unsigned int _aid)
+void User::passwdCommit(const BaseAuth& _auth)
 {
 	Cache<User>& user_cache = Cache<User>::getInstance();
-	password.dbCommit(_aid);
+	password.dbCommit(_auth);
 	user_cache.clear(id);
 }
 

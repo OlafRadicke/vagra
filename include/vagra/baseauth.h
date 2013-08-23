@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 by Julian Wiesener
+ * Copyright (C) 2013 by Julian Wiesener
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,39 +26,31 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <vagra/idmap.h>
-#include <vagra/user/cacheduser.h>
+#ifndef VARGA_BASEAUTH_H
+#define VARGA_BASEAUTH_H
+
+#include <string>
 
 namespace vagra
 {
 
-CachedUser::CachedUser(const unsigned int _id, const BaseAuth& _auth)
+class BaseAuth
 {
-	Cache<User>& user_cache = Cache<User>::getInstance();
-	user = user_cache.get(_id, _auth);
-}
+    protected:
+	unsigned int aid;
 
-CachedUser::CachedUser(const std::string& _name, const BaseAuth& _auth)
-{
-	Cache<User>& user_cache = Cache<User>::getInstance();
-	IdMap<User>& user_idmap = IdMap<User>::getInstance();
+    public:
+	BaseAuth() : aid(0) {}
+	operator unsigned int() const { return aid; }
+	virtual ~BaseAuth() {}
+};
 
-	user = user_cache.get(user_idmap.getIdByName(_name), _auth);
-}
-
-CachedUser::operator bool() const
-{
-	return *user;
-}
-
-CachedUser::operator int() const
-{
-	return *user;
-}
-
-CachedUser::operator unsigned int() const
-{
-	return *user;
-}
+class SuperUser: public BaseAuth
+{ 
+    public:
+	SuperUser() { aid = 1000; }
+};
 
 } //namespace vagra
+
+#endif // VARGA_BASEAUTH_H

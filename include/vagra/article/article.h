@@ -54,8 +54,8 @@ class Article: public BaseObject
     public:
 	Article() : BaseObject("articles"),
 		comments_allow(false), comments_view(false) {}
-	explicit Article(const std::string&, const unsigned int = 0);
-	explicit Article(const unsigned int, const unsigned int = 0);
+	explicit Article(const std::string&, const BaseAuth& = BaseAuth());
+	explicit Article(const unsigned int, const BaseAuth& = BaseAuth());
 	operator bool() const;
 	Article* operator->() { return this; }
 	void clear();
@@ -81,7 +81,7 @@ class Article: public BaseObject
 	void setCommentsAllow(bool);
 	void setCommentsView(bool);
 
-	void dbCommit(const unsigned int = 0);
+	void dbCommit(const BaseAuth& = BaseAuth());
 
 	static unsigned int getIdByName(const std::string&);
 };

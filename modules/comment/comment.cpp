@@ -46,8 +46,8 @@ log_define("vagra")
 
 //begin Comment
 
-Comment::Comment(const unsigned int _id, const unsigned int _aid)
-	: BaseObject("comments", _id, _aid), //call baseconstructor(db_tablename,objId,authId)
+Comment::Comment(const unsigned int _id, const BaseAuth& _auth)
+	: BaseObject("comments", _id, _auth), //call baseconstructor(db_tablename,objId,authId)
 	  ref_id(0), art_id(0)
 {
 	try
@@ -155,7 +155,7 @@ void Comment::setMail(const std::string& s)
 	mail = s;
 }
 
-void Comment::dbCommit(const unsigned int _aid)
+void Comment::dbCommit(const BaseAuth& _auth)
 {
 	if(author.empty())
 		throw InvalidValue(gettext("need an author"));
@@ -170,7 +170,7 @@ void Comment::dbCommit(const unsigned int _aid)
 	tntdb::Transaction trans_comm(conn);
 	try
 	{
-		dbCommitBase(conn, _aid); //init base, INSERT if id==0, otherwise UPDATE
+		dbCommitBase(conn, _auth); //init base, INSERT if id==0, otherwise UPDATE
 
 		conn.prepare("UPDATE comments SET art_id = :Iart_id, comm_ref = :Iref_id, comment = :Itext,"
 				" name = :Iauthor, home = :Ihomepage, mail = :Imail WHERE id = :Iid")

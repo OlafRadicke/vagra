@@ -41,8 +41,8 @@ class CachedContext
 	Cache<Context>::SharedObject ctx;
 
     public:
-	explicit CachedContext(const unsigned int, const unsigned int = 0);
-	explicit CachedContext(const std::string, const unsigned int = 0);
+	explicit CachedContext(const unsigned int, const BaseAuth& = BaseAuth());
+	explicit CachedContext(const std::string, const BaseAuth& = BaseAuth());
 	operator bool() const;
 
 	const Cache<Context>::SharedObject& operator->() const { return ctx; }

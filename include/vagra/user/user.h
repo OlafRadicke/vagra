@@ -46,12 +46,12 @@ class User: public BaseObject
 
 	Passwd password;
 
-	void Init(const unsigned int = 0);
+	void Init(const BaseAuth& = BaseAuth());
 
     public:
 	User() : BaseObject("vuser") {}
-	explicit User(const unsigned int, const unsigned int = 0);
-	explicit User(const std::string&, const unsigned int = 0);
+	explicit User(const unsigned int, const BaseAuth& = BaseAuth());
+	explicit User(const std::string&, const BaseAuth& = BaseAuth());
 
 	operator bool() const;
 	operator int() const;
@@ -68,10 +68,10 @@ class User: public BaseObject
 	void setPasswd(const Passwd&);
 	void setPasswd(const std::string&);
 
-	std::string setRandomPasswd(const unsigned int = 0);
+	std::string setRandomPasswd(const BaseAuth& = BaseAuth());
 
-	void dbCommit(const unsigned int = 0);
-	void passwdCommit(const unsigned int = 0);
+	void dbCommit(const BaseAuth& = BaseAuth());
+	void passwdCommit(const BaseAuth& = BaseAuth());
 
 	static unsigned int getIdByName(const std::string&);
 };
