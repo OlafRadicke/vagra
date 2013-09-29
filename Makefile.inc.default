@@ -1,0 +1,20 @@
+# basic configuration
+
+CXX=g++
+CXXOPTFLAGS=-O3
+
+# prefix of cxxtools 
+#  (assuming tntdb is installed there also,
+#  change VAGRA_CXXFLAGS and LDFLAGS otherwise)
+
+CXXTOOLS=/usr/local
+
+# modules to enable
+
+MODULES = article comment user passwd
+
+
+# for the most plattforms there should be no need to change anything below
+
+VAGRA_CXXFLAGS+=-I${CXXTOOLS}/include -fpic -DPIC -Wall -Wno-long-long -pedantic ${CXXOPTFLAGS}
+LDFLAGS+=-shared -L. -L${CXXTOOLS}/lib -Wl,-rpath=.:${CXXTOOLS}/lib -lcxxtools -ltntdb
